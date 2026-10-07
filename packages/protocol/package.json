@@ -1,0 +1,13 @@
+{
+  "name": "@nas/protocol",
+  "version": "0.1.0",
+  "description": "FileProto & Signaling types for NAS Share ecosystem",
+  "main": "src/types.ts",
+  "types": "src/types.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}

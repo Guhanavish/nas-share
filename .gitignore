@@ -1,0 +1,25 @@
+# Node / Frontend
+node_modules/
+dist/
+.wrangler/
+
+# Rust / Tauri
+target/
+src-tauri/target/
+
+# Android / Gradle
+.gradle/
+build/
+app/build/
+local.properties
+.idea/
+*.iml
+captures/
+.externalNativeBuild
+.cxx
+
+# OS artifacts
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.log

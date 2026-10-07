@@ -1,0 +1,35 @@
+[package]
+name = "nas-share-desktop"
+version = "0.1.0"
+description = "NAS Share Windows Desktop"
+authors = ["NAS Share Team"]
+edition = "2021"
+
+[lib]
+name = "nas_share_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.0.0", features = [] }
+
+[dependencies]
+tauri = { version = "2.0.0", features = ["tray-icon"] }
+tauri-plugin-dialog = "2.0.0"
+tauri-plugin-notification = "2.0.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.38", features = ["full"] }
+axum = { version = "0.7", features = ["multipart"] }
+tower-http = { version = "0.5", features = ["cors"] }
+rusqlite = { version = "0.31", features = ["bundled"] }
+mdns-sd = "0.11"
+uuid = { version = "1.8", features = ["v4", "serde"] }
+sha2 = "0.10"
+rand = "0.8"
+reqwest = { version = "0.12", features = ["json", "stream"] }
+futures-util = "0.3"
+tokio-tungstenite = { version = "0.23", features = ["native-tls"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+dirs = "5.0"
+urlencoding = "2.1"
