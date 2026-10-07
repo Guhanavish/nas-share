@@ -9,8 +9,7 @@ pub mod tray;
 
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
-use std::sync::Arc;
-use tauri::{AppHandle, Manager, State};
+use tauri::State;
 
 use crate::db::{Database, SharedFolder, TrustedDevice};
 use crate::discovery::{DiscoveredDevice, MdnsDiscovery};
@@ -40,31 +39,31 @@ pub struct Settings {
 // -----------------------------------------------------------------------------
 
 #[tauri::command]
-pub async fn get_device_info(state: State<'_, AppState>) -> Result<DeviceIdentity, String> {
+async fn get_device_info(state: State<'_, AppState>) -> Result<DeviceIdentity, String> {
     Ok(state.identity.clone())
 }
 
 #[tauri::command]
-pub async fn get_discovered_devices(
+async fn get_discovered_devices(
     state: State<'_, AppState>,
 ) -> Result<Vec<DiscoveredDevice>, String> {
     Ok(state.discovery.get_discovered())
 }
 
 #[tauri::command]
-pub async fn get_trusted_devices(
+async fn get_trusted_devices(
     state: State<'_, AppState>,
 ) -> Result<Vec<TrustedDevice>, String> {
     state.db.get_trusted_devices()
 }
 
 #[tauri::command]
-pub async fn list_files(address: String, path: String) -> Result<Vec<FileEntry>, String> {
+async fn list_files(address: String, path: String) -> Result<Vec<FileEntry>, String> {
     FileProtoClient::list_files(&address, &path).await
 }
 
 #[tauri::command]
-pub async fn download_file(
+async fn download_file(
     address: String,
     remote_path: String,
     local_path: String,
@@ -74,7 +73,7 @@ pub async fn download_file(
 }
 
 #[tauri::command]
-pub async fn upload_file(
+async fn upload_file(
     address: String,
     local_path: String,
     remote_path: String,
@@ -84,12 +83,12 @@ pub async fn upload_file(
 }
 
 #[tauri::command]
-pub async fn get_shared_folders(state: State<'_, AppState>) -> Result<Vec<SharedFolder>, String> {
+async fn get_shared_folders(state: State<'_, AppState>) -> Result<Vec<SharedFolder>, String> {
     state.db.get_shared_folders()
 }
 
 #[tauri::command]
-pub async fn add_shared_folder(
+async fn add_shared_folder(
     state: State<'_, AppState>,
     path: String,
     label: String,
@@ -107,7 +106,7 @@ pub async fn add_shared_folder(
 }
 
 #[tauri::command]
-pub async fn remove_shared_folder(
+async fn remove_shared_folder(
     state: State<'_, AppState>,
     id: String,
 ) -> Result<(), String> {
@@ -115,7 +114,7 @@ pub async fn remove_shared_folder(
 }
 
 #[tauri::command]
-pub async fn toggle_shared_folder(
+async fn toggle_shared_folder(
     state: State<'_, AppState>,
     id: String,
     enabled: bool,
@@ -124,12 +123,12 @@ pub async fn toggle_shared_folder(
 }
 
 #[tauri::command]
-pub async fn generate_pairing_code() -> Result<String, String> {
+async fn generate_pairing_code() -> Result<String, String> {
     Ok(PairingManager::generate_code())
 }
 
 #[tauri::command]
-pub async fn join_pairing(
+async fn join_pairing(
     state: State<'_, AppState>,
     code: String,
 ) -> Result<String, String> {
@@ -137,7 +136,7 @@ pub async fn join_pairing(
 }
 
 #[tauri::command]
-pub async fn revoke_device(
+async fn revoke_device(
     state: State<'_, AppState>,
     device_id: String,
 ) -> Result<(), String> {
@@ -145,7 +144,7 @@ pub async fn revoke_device(
 }
 
 #[tauri::command]
-pub async fn get_settings(state: State<'_, AppState>) -> Result<Settings, String> {
+async fn get_settings(state: State<'_, AppState>) -> Result<Settings, String> {
     Ok(Settings {
         port: 8743,
         autostart: true,
@@ -155,7 +154,7 @@ pub async fn get_settings(state: State<'_, AppState>) -> Result<Settings, String
 }
 
 #[tauri::command]
-pub async fn update_settings(_settings: Settings) -> Result<(), String> {
+async fn update_settings(_settings: Settings) -> Result<(), String> {
     Ok(())
 }
 
@@ -184,7 +183,7 @@ pub fn run() {
         db,
         identity,
         discovery,
-        worker_url: "wss://nas-signaling.YOUR_SUBDOMAIN.workers.dev".to_string(),
+        worker_url: "wss://nas-signaling.ssgginfotech.workers.dev".to_string(),
     };
 
     tauri::Builder::default()

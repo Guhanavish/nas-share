@@ -34,7 +34,7 @@ sealed class PairingState {
 
 class PairingManager(
     private val context: Context,
-    private val workerUrl: String = "wss://nas-signaling.YOUR_SUBDOMAIN.workers.dev"
+    private val workerUrl: String = "wss://nas-signaling.ssgginfotech.workers.dev"
 ) {
     companion object {
         private const val TAG = "PairingManager"

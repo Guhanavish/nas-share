@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
 }
 
@@ -17,7 +16,7 @@ android {
         versionCode = 1
         versionName = "0.1.0"
 
-        buildConfigField("String", "WORKER_URL", "\"https://nas-signaling.<YOUR_SUBDOMAIN>.workers.dev\"")
+        buildConfigField("String", "WORKER_URL", "\"https://nas-signaling.ssgginfotech.workers.dev\"")
         buildConfigField("int", "DEFAULT_PORT", "8743")
     }
 
@@ -40,6 +39,26 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.14"
+    }
+
+    sourceSets {
+        getByName("main") {
+            java.srcDirs("src/main/kotlin", "../../../packages/protocol/src")
+        }
+    }
+
+    packaging {
+        resources {
+            excludes += listOf(
+                "/META-INF/{AL2.0,LGPL2.1}",
+                "/META-INF/INDEX.LIST",
+                "/META-INF/io.netty.versions.properties"
+            )
+        }
     }
 }
 

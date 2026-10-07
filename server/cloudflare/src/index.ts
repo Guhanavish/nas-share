@@ -82,7 +82,7 @@ app.get("/ws", async (c) => {
   }
 
   // Rate limit by IP
-  const ip = c.req.header("CF-Connecting-IP") ?? c.req.header("X-Forwarded-For") ?? "unknown";
+  const ip = c.req.header("cf-connecting-ip") ?? c.req.raw.headers.get("cf-connecting-ip") ?? c.req.header("x-forwarded-for") ?? "client-ip";
   if (!checkRateLimit(ip)) {
     return c.json(
       { error: "Rate limited. Max 5 joins per minute." },

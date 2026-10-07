@@ -21,6 +21,7 @@ export class Room implements DurableObject {
   private state: DurableObjectState;
   private socketA: WebSocket | null = null;
   private socketB: WebSocket | null = null;
+  private joinTimestamps: number[] = [];
   private created = false;
 
   constructor(state: DurableObjectState, _env: unknown) {
@@ -33,6 +34,17 @@ export class Room implements DurableObject {
     if (request.headers.get("Upgrade") !== "websocket") {
       return new Response("Expected WebSocket", { status: 426 });
     }
+
+    // Rate limit: max 5 joins per minute per Room
+    const now = Date.now();
+    this.joinTimestamps = this.joinTimestamps.filter((t) => now - t < 60_000);
+    if (this.joinTimestamps.length >= 5) {
+      return new Response(
+        JSON.stringify({ type: "error", payload: { code: "RATE_LIMITED", message: "Rate limit exceeded: max 5 joins per minute" } }),
+        { status: 429, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    this.joinTimestamps.push(now);
 
     // Check capacity — max 2 peers
     if (this.socketA !== null && this.socketB !== null) {

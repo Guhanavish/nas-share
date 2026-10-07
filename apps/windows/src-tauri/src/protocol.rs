@@ -1,4 +1,4 @@
-use reqwest::header::{ACCEPT_RANGES, CONTENT_LENGTH, RANGE};
+use reqwest::header::RANGE;
 use serde::{Deserialize, Serialize};
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Seek, SeekFrom, Write};
@@ -23,12 +23,14 @@ pub struct FileMeta {
     pub mime_type: Option<String>,
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize)]
 struct ListResponse {
     pub ok: bool,
     pub entries: Vec<FileEntry>,
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize)]
 struct StatResponse {
     pub ok: bool,
