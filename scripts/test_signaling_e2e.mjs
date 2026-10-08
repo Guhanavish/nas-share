@@ -106,17 +106,21 @@ async function runSignalingTest() {
       checkDone();
     };
 
+    let done = false;
     function checkDone() {
-      if (aReceivedAnswer && bReceivedOffer && aReceivedIce && bReceivedIce && aReceivedPing) {
+      if (!done && aReceivedAnswer && bReceivedOffer && aReceivedIce && bReceivedIce && aReceivedPing) {
+        done = true;
         clearTimeout(timeout);
+        clientA.onerror = null;
+        clientB.onerror = null;
         clientA.close();
         clientB.close();
         resolve(true);
       }
     }
 
-    clientA.onerror = (err) => console.error('[Client A] Error:', err);
-    clientB.onerror = (err) => console.error('[Client B] Error:', err);
+    clientA.onerror = (err) => { if (!done) console.error('[Client A] Error:', err); };
+    clientB.onerror = (err) => { if (!done) console.error('[Client B] Error:', err); };
 
     // After brief delay, Client A sends ping and offer
     setTimeout(() => {
