@@ -115,4 +115,7 @@ dependencies {
 
     // Core
     implementation(libs.core.ktx)
+
+    // Real QR generation for pairing (ZXing)
+    implementation(libs.zxing.core)
 }

@@ -25,6 +25,10 @@ import androidx.compose.ui.unit.sp
 import com.nas.app.NasApplication
 import com.nas.app.data.SharedFolderEntity
 import com.nas.app.service.NasService
+import com.nas.app.ui.adaptive.bodySp
+import com.nas.app.ui.adaptive.rememberUniversalPosture
+import com.nas.app.ui.adaptive.titleSp
+import com.nas.app.ui.adaptive.universalFocusable
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -37,6 +41,7 @@ fun ShareScreen(
     val scope = rememberCoroutineScope()
     val dao = remember { NasApplication.instance.database.sharedFolderDao() }
     val sharedFolders by dao.getAll().collectAsState(initial = emptyList())
+    val posture = rememberUniversalPosture()
 
     // Folder picker launcher using OpenDocumentTree
     val folderPicker = rememberLauncherForActivityResult(
@@ -70,14 +75,16 @@ fun ShareScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Shared Folders", fontWeight = FontWeight.Bold) },
+                title = { Text("Shared Folders", fontWeight = FontWeight.Bold, fontSize = titleSp(posture.isTv).sp) },
                 actions = {
                     Button(
                         onClick = {
                             val code = com.nas.app.pairing.PairingManager(context).generateCode()
                             onOpenPairingWithCode(code)
                         },
-                        modifier = Modifier.padding(end = 8.dp)
+                        modifier = Modifier
+                            .padding(end = 8.dp)
+                            .universalFocusable()
                     ) {
                         Icon(Icons.Default.QrCode, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(6.dp))
@@ -87,19 +94,41 @@ fun ShareScreen(
             )
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = { folderPicker.launch(null) },
-                icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                text = { Text("Share Folder") }
-            )
+            // TV/Google TV: no DocumentsUI picker — hide FAB, guide to phone or Downloads share
+            if (!posture.isTv) {
+                ExtendedFloatingActionButton(
+                    onClick = { folderPicker.launch(null) },
+                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                    text = { Text("Share Folder") }
+                )
+            }
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = posture.horizontalPadding, vertical = posture.verticalPadding)
         ) {
+            if (posture.isTv) {
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("TV runs best as a viewer", fontWeight = FontWeight.Bold, fontSize = titleSp(true).sp)
+                        Text(
+                            "Browse and play from your phone or PC. Sharing from TV is optional and uses the Downloads folder.",
+                            fontSize = bodySp(true).sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            modifier = Modifier.padding(vertical = 6.dp)
+                        )
+                    }
+                }
+            }
             // Quick default share shortcut if empty
             if (sharedFolders.isEmpty()) {
                 Card(
@@ -159,22 +188,24 @@ fun ShareScreen(
                                     Icons.Default.Folder,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(32.dp)
+                                    modifier = Modifier.size(if (posture.isTv) 40.dp else 32.dp)
                                 )
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text(folder.label, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                    Text(folder.path, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
-                                    Text("ACL: ${folder.acl}", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
+                                    Text(folder.label, fontWeight = FontWeight.Bold, fontSize = titleSp(posture.isTv).sp)
+                                    Text(folder.path, fontSize = bodySp(posture.isTv).sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                                    Text("ACL: ${folder.acl}", fontSize = bodySp(posture.isTv).sp, color = MaterialTheme.colorScheme.primary)
                                 }
                                 Switch(
                                     checked = folder.enabled,
                                     onCheckedChange = { checked ->
                                         scope.launch { dao.setEnabled(folder.id, checked) }
-                                    }
+                                    },
+                                    modifier = Modifier.universalFocusable()
                                 )
                                 IconButton(
-                                    onClick = { scope.launch { dao.delete(folder) } }
+                                    onClick = { scope.launch { dao.delete(folder) } },
+                                    modifier = Modifier.universalFocusable()
                                 ) {
                                     Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
                                 }

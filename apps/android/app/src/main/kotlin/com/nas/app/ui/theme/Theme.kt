@@ -18,7 +18,9 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 @Composable
-fun NasAppTheme(content: @Composable () -> Unit) {
+fun NasAppTheme(isTv: Boolean = false, content: @Composable () -> Unit) {
+    // Same dark palette everywhere; per-screen type uses bodySp(isTv)/titleSp(isTv)
+    // for 10-foot legibility + 5% overscan padding handled in posture.
     MaterialTheme(
         colorScheme = DarkColorScheme,
         content = content

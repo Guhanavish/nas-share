@@ -24,10 +24,19 @@
         android:maxSdkVersion="29"
         tools:ignore="ScopedStorage" />
 
+    <!-- TV / universal: declare leanback + touchscreen optional so one APK installs everywhere -->
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+
     <application
         android:name=".NasApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
+        android:banner="@drawable/tv_banner"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
@@ -38,10 +47,17 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
             android:theme="@style/Theme.NasApp">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- Android TV / Google TV launcher entry, same universal activity -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
             <!-- Deep link for pairing -->
             <intent-filter>

@@ -10,6 +10,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -24,6 +27,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nas.app.protocol.FileProtoClient
+import com.nas.app.ui.adaptive.bodySp
+import com.nas.app.ui.adaptive.rememberUniversalPosture
+import com.nas.app.ui.adaptive.titleSp
+import com.nas.app.ui.adaptive.universalFocusable
 import com.nas.protocol.EntryType
 import com.nas.protocol.FileEntry
 import kotlinx.coroutines.launch
@@ -39,11 +46,14 @@ fun FilesScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val client = remember { FileProtoClient() }
+    val posture = rememberUniversalPosture()
 
     var currentPath by remember { mutableStateOf("/") }
     var entries by remember { mutableStateOf<List<FileEntry>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
-    var isGridView by remember { mutableStateOf(false) }
+    var isGridView by remember(posture.isTv, posture.columns) {
+        mutableStateOf(posture.isTv || posture.columns > 1)
+    }
 
     // Download/upload progress state
     var progressMessage by remember { mutableStateOf<String?>(null) }
@@ -60,6 +70,39 @@ fun FilesScreen(
                 Toast.makeText(context, "Failed to load: ${e.message}", Toast.LENGTH_SHORT).show()
             } finally {
                 isLoading = false
+            }
+        }
+    }
+
+    fun openEntry(entry: FileEntry) {
+        if (entry.entryType == EntryType.DIR) {
+            val nextPath = if (currentPath == "/") "/${entry.name}" else "$currentPath/${entry.name}"
+            loadPath(nextPath)
+        } else {
+            scope.launch {
+                try {
+                    val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                    val localFile = File(downloadsDir, entry.name)
+                    progressMessage = "Downloading ${entry.name}..."
+                    val remoteFilePath = if (currentPath == "/") entry.name else "$currentPath/${entry.name}"
+                    client.downloadFile(
+                        peerAddress = peerAddress,
+                        remotePath = remoteFilePath,
+                        destinationFile = localFile,
+                        onProgress = { downloaded, total ->
+                            if (total > 0) {
+                                progressFraction = downloaded.toFloat() / total.toFloat()
+                                progressMessage = "Downloading: ${downloaded / 1024} KB / ${total / 1024} KB"
+                            }
+                        }
+                    )
+                    Toast.makeText(context, "Downloaded to ${localFile.name}", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Download failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                } finally {
+                    progressMessage = null
+                    progressFraction = null
+                }
             }
         }
     }
@@ -113,35 +156,51 @@ fun FilesScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text(peerDeviceName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                        Text(currentPath, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                        Text(peerDeviceName, fontWeight = FontWeight.Bold, fontSize = titleSp(posture.isTv).sp)
+                        Text(currentPath, fontSize = bodySp(posture.isTv).sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = {
-                        if (currentPath == "/" || currentPath.isEmpty()) {
-                            onBack()
-                        } else {
-                            val parent = currentPath.substringBeforeLast("/", "").ifEmpty { "/" }
-                            loadPath(parent)
-                        }
-                    }) {
+                    IconButton(
+                        onClick = {
+                            if (currentPath == "/" || currentPath.isEmpty()) {
+                                onBack()
+                            } else {
+                                val parent = currentPath.substringBeforeLast("/", "").ifEmpty { "/" }
+                                loadPath(parent)
+                            }
+                        },
+                        modifier = Modifier.universalFocusable()
+                    ) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
-                    IconButton(onClick = { loadPath(currentPath) }) {
+                    // Grid/list toggle works with remote: D-pad can focus it
+                    IconButton(
+                        onClick = { isGridView = !isGridView },
+                        modifier = Modifier.universalFocusable()
+                    ) {
+                        Icon(
+                            if (isGridView) Icons.Default.ViewList else Icons.Default.GridView,
+                            contentDescription = "Toggle view"
+                        )
+                    }
+                    IconButton(onClick = { loadPath(currentPath) }, modifier = Modifier.universalFocusable()) {
                         Icon(Icons.Default.Refresh, contentDescription = "Refresh")
                     }
                 }
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { uploadLauncher.launch(arrayOf("*/*")) },
-                containerColor = MaterialTheme.colorScheme.primary
-            ) {
-                Icon(Icons.Default.Upload, contentDescription = "Upload File")
+            // TV has no touch FAB: keep FAB on touch layouts, move upload to top-bar on TV
+            if (!posture.isTv) {
+                FloatingActionButton(
+                    onClick = { uploadLauncher.launch(arrayOf("*/*")) },
+                    containerColor = MaterialTheme.colorScheme.primary
+                ) {
+                    Icon(Icons.Default.Upload, contentDescription = "Upload File")
+                }
             }
         }
     ) { padding ->
@@ -181,6 +240,23 @@ fun FilesScreen(
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("No files in this folder", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                 }
+            } else if (isGridView) {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(if (posture.isTv) posture.columns + 1 else posture.columns),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = posture.horizontalPadding),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(entries, key = { it.name }) { entry ->
+                        FileRowItem(
+                            entry = entry,
+                            isTv = posture.isTv,
+                            onClick = { openEntry(entry) }
+                        )
+                    }
+                }
             } else {
                 LazyColumn(
                     modifier = Modifier
@@ -191,40 +267,8 @@ fun FilesScreen(
                     items(entries) { entry ->
                         FileRowItem(
                             entry = entry,
-                            onClick = {
-                                if (entry.entryType == EntryType.DIR) {
-                                    val nextPath = if (currentPath == "/") "/${entry.name}" else "$currentPath/${entry.name}"
-                                    loadPath(nextPath)
-                                } else {
-                                    // Download file with resume
-                                    scope.launch {
-                                        try {
-                                            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                                            val localFile = File(downloadsDir, entry.name)
-                                            progressMessage = "Downloading ${entry.name}..."
-
-                                            val remoteFilePath = if (currentPath == "/") entry.name else "$currentPath/${entry.name}"
-                                            client.downloadFile(
-                                                peerAddress = peerAddress,
-                                                remotePath = remoteFilePath,
-                                                destinationFile = localFile,
-                                                onProgress = { downloaded, total ->
-                                                    if (total > 0) {
-                                                        progressFraction = downloaded.toFloat() / total.toFloat()
-                                                        progressMessage = "Downloading: ${downloaded / 1024} KB / ${total / 1024} KB"
-                                                    }
-                                                }
-                                            )
-                                            Toast.makeText(context, "Downloaded to ${localFile.name}", Toast.LENGTH_SHORT).show()
-                                        } catch (e: Exception) {
-                                            Toast.makeText(context, "Download failed: ${e.message}", Toast.LENGTH_SHORT).show()
-                                        } finally {
-                                            progressMessage = null
-                                            progressFraction = null
-                                        }
-                                    }
-                                }
-                            }
+                            isTv = posture.isTv,
+                            onClick = { openEntry(entry) }
                         )
                     }
                 }
@@ -234,12 +278,13 @@ fun FilesScreen(
 }
 
 @Composable
-fun FileRowItem(entry: FileEntry, onClick: () -> Unit) {
+fun FileRowItem(entry: FileEntry, onClick: () -> Unit, isTv: Boolean = false) {
     Card(
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         modifier = Modifier
             .fillMaxWidth()
+            .universalFocusable(onDpadCenter = onClick)
             .clickable(onClick = onClick)
     ) {
         Row(
@@ -261,16 +306,16 @@ fun FileRowItem(entry: FileEntry, onClick: () -> Unit) {
                 icon,
                 contentDescription = null,
                 tint = if (entry.entryType == EntryType.DIR) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(if (isTv) 40.dp else 32.dp)
             )
 
             Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(entry.name, fontWeight = FontWeight.Medium, fontSize = 15.sp)
+                Text(entry.name, fontWeight = FontWeight.Medium, fontSize = titleSp(isTv).sp)
                 if (entry.entryType == EntryType.FILE) {
                     val sizeFormatted = formatBytes(entry.size)
-                    Text(sizeFormatted, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                    Text(sizeFormatted, fontSize = bodySp(isTv).sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                 }
             }
         }

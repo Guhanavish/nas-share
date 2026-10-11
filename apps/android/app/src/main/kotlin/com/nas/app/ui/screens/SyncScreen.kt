@@ -18,6 +18,10 @@ import androidx.compose.ui.unit.sp
 import com.nas.app.NasApplication
 import com.nas.app.data.SharedFolderEntity
 import com.nas.app.data.TrustedDeviceEntity
+import com.nas.app.ui.adaptive.bodySp
+import com.nas.app.ui.adaptive.rememberUniversalPosture
+import com.nas.app.ui.adaptive.titleSp
+import com.nas.app.ui.adaptive.universalFocusable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -33,11 +37,12 @@ fun SyncScreen() {
     var autoBackupEnabled by remember { mutableStateOf(true) }
     var isSyncing by remember { mutableStateOf(false) }
     var lastSyncStatus by remember { mutableStateOf("All files up to date (Keep-both policy active)") }
+    val posture = rememberUniversalPosture()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Folder Sync & Backup", fontWeight = FontWeight.Bold) }
+                title = { Text("Folder Sync & Backup", fontWeight = FontWeight.Bold, fontSize = titleSp(posture.isTv).sp) }
             )
         }
     ) { padding ->
@@ -45,7 +50,7 @@ fun SyncScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
+                .padding(horizontal = posture.horizontalPadding, vertical = posture.verticalPadding),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
@@ -70,7 +75,8 @@ fun SyncScreen() {
                             }
                             Switch(
                                 checked = autoBackupEnabled,
-                                onCheckedChange = { autoBackupEnabled = it }
+                                onCheckedChange = { autoBackupEnabled = it },
+                                modifier = Modifier.universalFocusable()
                             )
                         }
 
@@ -87,7 +93,9 @@ fun SyncScreen() {
                                 }
                             },
                             enabled = !isSyncing && trustedDevices.isNotEmpty(),
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .universalFocusable()
                         ) {
                             if (isSyncing) {
                                 CircularProgressIndicator(modifier = Modifier.size(18.dp), color = MaterialTheme.colorScheme.onPrimary)
