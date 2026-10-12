@@ -1,10 +1,10 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import { MapPinOff, House, BookOpenText } from "lucide-react";
 import { useMeta } from "../lib/meta";
 
 export function NotFound() {
   useMeta({
-    title: "Page not found | NAS Share",
+    title: "Page not found | Nasend",
     description: "This page does not exist or moved. Head home or read the setup docs.",
     path: "/404",
   });

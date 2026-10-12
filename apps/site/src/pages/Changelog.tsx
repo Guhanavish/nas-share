@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+﻿import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -76,8 +76,8 @@ function LoadingSkeleton() {
 
 export function Changelog() {
   useMeta({
-    title: "Changelog | NAS Share",
-    description: "Every NAS Share release: pooled sections, relay fallback, TV support. Version history with APK and EXE downloads.",
+    title: "Changelog | Nasend",
+    description: "Every Nasend release: pooled sections, relay fallback, TV support. Version history with APK and EXE downloads.",
     path: "/changelog",
   });
 

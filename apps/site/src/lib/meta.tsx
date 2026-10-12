@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+﻿import { useEffect } from "react";
 import { GITHUB_REPO } from "../lib/site";
 
 const SITE_URL = "https://nas-share-c941u6fq5-gt4.vercel.app";
@@ -58,7 +58,7 @@ export function useMeta(opts: { title: string; description: string; path: string
 const SOFTWARE_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  name: "NAS Share",
+  name: "Nasend",
   applicationCategory: "UtilitiesApplication",
   operatingSystem: ["Android", "Windows", "Android TV"],
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },

@@ -1,4 +1,4 @@
-pub mod db;
+﻿pub mod db;
 pub mod discovery;
 pub mod identity;
 pub mod pairing;
@@ -258,7 +258,7 @@ pub fn run() {
     let _ = tracing_subscriber::fmt()
         .with_env_filter("nas_share_desktop_lib=info,info")
         .try_init();
-    log_line("starting NAS Share");
+    log_line("starting Nasend");
 
     // --- Fallible init: every step degrades instead of .expect()-crashing ---
     let db = match Database::init() {

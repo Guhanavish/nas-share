@@ -1,7 +1,7 @@
-# FileProto Specification
+﻿# FileProto Specification
 
 ## 1. Overview
-FileProto is the unified application-layer protocol for the NAS Share ecosystem. It operates symmetrically across two transports:
+FileProto is the unified application-layer protocol for the Nasend ecosystem. It operates symmetrically across two transports:
 1. **LAN Transport**: HTTP/1.1 REST-style endpoints over TCP (Default port: `8743`).
 2. **WAN Transport**: Bidirectional WebRTC DataChannel using DTLS-encrypted frame streaming.
 

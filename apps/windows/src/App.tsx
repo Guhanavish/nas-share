@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Laptop, Folder, Layers, Share2, RefreshCw, HardDrive } from "lucide-react";
 import { DevicesPage } from "./pages/DevicesPage";
 import { FilesPage } from "./pages/FilesPage";
@@ -41,7 +41,7 @@ export default function App() {
               <HardDrive className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="font-bold text-base leading-tight">NAS Share</h1>
+              <h1 className="font-bold text-base leading-tight">Nasend</h1>
               <p className="text-xs text-gray-400 font-mono">v0.1.0 • P2P NAS</p>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { HardDrive, Menu, X } from "lucide-react";
 import { GITHUB_REPO, releasesPage, useLatestRelease } from "../lib/site";
@@ -37,7 +37,7 @@ export function Navbar() {
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white shadow-lg shadow-blue-500/30">
             <HardDrive className="h-5 w-5" />
           </span>
-          <span className="font-display font-bold">NAS Share</span>
+          <span className="font-display font-bold">Nasend</span>
           {release && (
             <span className="rounded-full border border-line bg-card px-2.5 py-0.5 font-mono text-[11px] text-accent">
               {release.tag}
@@ -94,7 +94,7 @@ export function Footer() {
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white">
               <HardDrive className="h-5 w-5" />
             </span>
-            <span className="font-display font-bold">NAS Share</span>
+            <span className="font-display font-bold">Nasend</span>
           </div>
           <p className="mt-4 max-w-sm text-sm text-fog">
             Every device is both server and client. Pool them into one section,
@@ -125,7 +125,7 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-line py-5 text-center font-mono text-xs text-fog">
-        your devices are the cloud · nas share
+        your devices are the cloud · nasend
       </div>
     </footer>
   );

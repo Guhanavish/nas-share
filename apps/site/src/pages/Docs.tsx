@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import { Smartphone, MonitorDown, Tv, RefreshCw, LifeBuoy } from "lucide-react";
 import { Reveal } from "../components/ui";
 import { Breadcrumbs } from "../components/Breadcrumbs";
@@ -59,7 +59,7 @@ const guides = [
 
 export function Docs() {
   useMeta({
-    title: "Setup Docs | NAS Share",
+    title: "Setup Docs | Nasend",
     description: "Pair phone with PC, set up Google TV, run the Windows app, sync with resume, and fix common issues. Five short guides.",
     path: "/docs",
   });

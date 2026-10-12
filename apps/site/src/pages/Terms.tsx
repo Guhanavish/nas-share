@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import { Reveal } from "../components/ui";
 import { Breadcrumbs } from "../components/Breadcrumbs";
 import { useMeta } from "../lib/meta";
@@ -6,7 +6,7 @@ import { useMeta } from "../lib/meta";
 const sections = [
   {
     h: "What this site is",
-    p: "This site distributes NAS Share, a free MIT-licensed app that turns your own devices into private shared storage. Downloads come from GitHub Releases. We sell nothing and bill nothing.",
+    p: "This site distributes Nasend, a free MIT-licensed app that turns your own devices into private shared storage. Downloads come from GitHub Releases. We sell nothing and bill nothing.",
   },
   {
     h: "What we collect",
@@ -32,8 +32,8 @@ const sections = [
 
 export function Terms() {
   useMeta({
-    title: "Terms and Conditions | NAS Share",
-    description: "Terms for downloading and using NAS Share: free MIT software, your files stay on your devices, no warranty.",
+    title: "Terms and Conditions | Nasend",
+    description: "Terms for downloading and using Nasend: free MIT software, your files stay on your devices, no warranty.",
     path: "/terms",
   });
 

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
   <rect width="1200" height="630" fill="#0b0e13"/>
   <g stroke="#3b82f6" stroke-opacity="0.25">
     <path d="M0 90h1200M0 180h1200M0 270h1200M0 360h1200M0 450h1200M0 540h1200"/>
@@ -10,7 +10,7 @@
   <path d="M960 340 C 780 450, 420 450, 240 340" stroke="#10b981" stroke-width="6" fill="none" stroke-dasharray="16 14"/>
   <circle cx="600" cy="315" r="10" fill="#3b82f6"/>
   <circle cx="700" cy="315" r="10" fill="#10b981"/>
-  <text x="600" y="200" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="72" fill="#f3f4f6">NAS Share</text>
+  <text x="600" y="200" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="72" fill="#f3f4f6">Nasend</text>
   <text x="600" y="470" text-anchor="middle" font-family="monospace" font-size="34" fill="#9ca3af">your devices are the cloud</text>
   <text x="600" y="525" text-anchor="middle" font-family="monospace" font-size="30" fill="#10b981">pool · pair · pull · no accounts · $0 servers</text>
 </svg>

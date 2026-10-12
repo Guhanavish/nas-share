@@ -1,6 +1,6 @@
-{
-  "name": "NAS Share",
-  "short_name": "NAS Share",
+﻿{
+  "name": "Nasend",
+  "short_name": "Nasend",
   "description": "Your devices are the cloud. Pool phones, TVs and PCs into one private section.",
   "start_url": "/",
   "display": "standalone",

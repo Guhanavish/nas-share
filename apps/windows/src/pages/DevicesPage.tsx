@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { Wifi, Laptop, Smartphone, Trash2, QrCode, RefreshCw } from "lucide-react";
 import { DiscoveredDevice, TrustedDevice } from "../lib/types";
 import { getDiscoveredDevices, getTrustedDevices, revokeDevice } from "../lib/tauri";
@@ -79,7 +79,7 @@ export const DevicesPage: React.FC<DevicesPageProps> = ({
 
         {discovered.length === 0 ? (
           <div className="bg-[#1B1E24] border border-[#262A33] rounded-2xl p-6 text-center text-gray-400 text-sm">
-            Scanning local network via mDNS... Ensure other devices have NAS Share open.
+            Scanning local network via mDNS... Ensure other devices have Nasend open.
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

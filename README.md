@@ -1,4 +1,4 @@
-# NAS Share — Device-as-NAS Ecosystem
+﻿# Nasend — Device-as-NAS Ecosystem
 
 > Every device is both **server** (shares folders) and **client** (browses others).
 > Like Syncthing + LAN-Share + DropStream combined. No VPS, no accounts, $0 operating cost.

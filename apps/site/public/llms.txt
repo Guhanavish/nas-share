@@ -1,4 +1,4 @@
-# NAS Share — llms.txt
+﻿# Nasend — llms.txt
 # Your devices are the cloud: pool phones, TVs and PCs into one private section.
 
 ## What it is

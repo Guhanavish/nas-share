@@ -1,4 +1,4 @@
-# NAS Share — Test Checklist
+﻿# Nasend — Test Checklist
 
 ## Prerequisites
 - Two devices on same WiFi (phone + PC, or two PCs)

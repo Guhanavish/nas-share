@@ -1,8 +1,8 @@
-[package]
+﻿[package]
 name = "nas-share-desktop"
 version = "0.1.0"
-description = "NAS Share Windows Desktop"
-authors = ["NAS Share Team"]
+description = "Nasend Windows Desktop"
+authors = ["Nasend Team"]
 edition = "2021"
 
 [lib]

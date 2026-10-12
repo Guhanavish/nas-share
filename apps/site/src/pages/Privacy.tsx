@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import { Reveal } from "../components/ui";
 import { Breadcrumbs } from "../components/Breadcrumbs";
 import { useMeta } from "../lib/meta";
@@ -16,8 +16,8 @@ const rows: [string, string][] = [
 
 export function Privacy() {
   useMeta({
-    title: "Privacy Policy | NAS Share",
-    description: "NAS Share privacy: no accounts, no analytics, no file storage. What little metadata exists and where it lives.",
+    title: "Privacy Policy | Nasend",
+    description: "Nasend privacy: no accounts, no analytics, no file storage. What little metadata exists and where it lives.",
     path: "/privacy",
   });
 

@@ -1,4 +1,4 @@
-use tauri::{
+﻿use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     AppHandle, Manager,
@@ -8,7 +8,7 @@ pub struct TrayManager;
 
 impl TrayManager {
     pub fn setup(app: &AppHandle) -> Result<(), String> {
-        let show_i = MenuItem::with_id(app, "show", "Show NAS Share", true, None::<&str>)
+        let show_i = MenuItem::with_id(app, "show", "Show Nasend", true, None::<&str>)
             .map_err(|e| e.to_string())?;
         let hide_i = MenuItem::with_id(app, "hide", "Hide", true, None::<&str>)
             .map_err(|e| e.to_string())?;
@@ -20,7 +20,7 @@ impl TrayManager {
 
         let _tray = TrayIconBuilder::new()
             .menu(&menu)
-            .tooltip("NAS Share — Serving files on LAN")
+            .tooltip("Nasend — Serving files on LAN")
             .on_menu_event(|app, event| match event.id.as_ref() {
                 "show" => {
                     if let Some(window) = app.get_webview_window("main") {
