@@ -2,19 +2,23 @@
 // NAS Signaling — Hono Worker Entry
 // =============================================================================
 // Routes:
-//   GET  /           → health check
-//   GET  /ws?room=   → WebSocket upgrade → Durable Object Room
-//   GET  /api/turn   → ICE server configuration
+//   GET  /                  → health check
+//   GET  /ws?room=          → WebSocket upgrade → Durable Object Room
+//   GET  /api/turn          → ICE server configuration
+//   GET  /presence/ws?device= → persistent socket → Presence DO
+//   GET  /api/presence      → online device ids (for Pool without LAN)
 // Rate limit: 5 joins per minute per IP via in-memory sliding window.
 // =============================================================================
 
 import { Hono } from "hono";
 import { Room } from "./room";
+import { Presence } from "./presence";
 
-export { Room };
+export { Room, Presence };
 
 interface Env {
   ROOM: DurableObjectNamespace;
+  PRESENCE: DurableObjectNamespace;
   STUN_URL: string;
   TURN_URL?: string;
   TURN_USERNAME?: string;
@@ -103,6 +107,35 @@ app.get("/ws", async (c) => {
   });
 
   return stub.fetch(doRequest);
+});
+
+// Persistent presence socket — one per device, heartbeat every 30s.
+// Forwards to the singleton Presence Durable Object ("global").
+app.get("/presence/ws", async (c) => {
+  const upgradeHeader = c.req.header("Upgrade");
+  if (!upgradeHeader || upgradeHeader.toLowerCase() !== "websocket") {
+    return c.json({ error: "Expected WebSocket upgrade" }, 426);
+  }
+  const device = c.req.query("device");
+  if (!device || !/^[A-Za-z0-9_-]{1,64}$/.test(device)) {
+    return c.json({ error: "Invalid device query parameter" }, 400);
+  }
+  const doId = c.env.PRESENCE.idFromName("global");
+  const stub = c.env.PRESENCE.get(doId);
+  const url = new URL(c.req.url);
+  url.pathname = "/ws";
+  return stub.fetch(
+    new Request(url.toString(), { headers: c.req.raw.headers })
+  );
+});
+
+// Online device list for Pool-without-LAN
+app.get("/api/presence", async (c) => {
+  const doId = c.env.PRESENCE.idFromName("global");
+  const stub = c.env.PRESENCE.get(doId);
+  const url = new URL(c.req.url);
+  url.pathname = "/online";
+  return stub.fetch(new Request(url.toString()));
 });
 
 // ICE server configuration

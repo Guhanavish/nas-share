@@ -65,7 +65,7 @@ impl MdnsDiscovery {
 
         let discovered = self.discovered.clone();
 
-        tokio::spawn(async move {
+        tauri::async_runtime::spawn(async move {
             while let Ok(event) = receiver.recv_async().await {
                 match event {
                     ServiceEvent::ServiceResolved(info) => {

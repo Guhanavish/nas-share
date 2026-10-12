@@ -16,6 +16,8 @@ import com.nas.app.MainActivity
 import com.nas.app.NasApplication
 import com.nas.app.discovery.MdnsManager
 import com.nas.app.pairing.DeviceIdentity
+import com.nas.app.remote.RemoteMesh
+import com.nas.app.remote.RemoteResponder
 import com.nas.app.server.EmbeddedServer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -102,6 +104,11 @@ class NasService : Service() {
                 }
             }
 
+            // Remote mesh: presence heartbeat + answer relay file requests
+            // so this device is poolable without LAN.
+            RemoteMesh.connect(identity.deviceId, identity.deviceName)
+            RemoteResponder.attach()
+
             val sharedFolders = NasApplication.instance.database.sharedFolderDao().getAll().firstOrNull() ?: emptyList()
             val folderCount = sharedFolders.filter { it.enabled }.size
             val notificationText = if (folderCount == 1) "Sharing 1 folder — tap to stop" else "Sharing $folderCount folders — tap to stop"
@@ -113,6 +120,8 @@ class NasService : Service() {
     }
 
     private fun stopSharing() {
+        RemoteResponder.detach()
+        RemoteMesh.disconnect()
         embeddedServer?.stop()
         embeddedServer = null
 

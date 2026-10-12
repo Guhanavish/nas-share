@@ -18,6 +18,13 @@ export interface TrustedDevice extends DeviceInfo {
   is_revoked: boolean;
 }
 
+export interface RemoteDevice {
+  device_id: string;
+  device_name: string;
+}
+
+export type PoolTransport = "lan" | "relay";
+
 export interface SharedFolder {
   id: string;
   path: string;

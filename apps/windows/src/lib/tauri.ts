@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { DeviceInfo, DiscoveredDevice, TrustedDevice, SharedFolder, FileEntry, Settings } from "./types";
+import { DeviceInfo, DiscoveredDevice, TrustedDevice, SharedFolder, FileEntry, Settings, RemoteDevice } from "./types";
 
 export async function getDeviceInfo(): Promise<DeviceInfo> {
   return await invoke("get_device_info");
@@ -59,4 +59,24 @@ export async function getSettings(): Promise<Settings> {
 
 export async function updateSettings(settings: Settings): Promise<void> {
   return await invoke("update_settings", { settings });
+}
+
+export async function getRemoteOnline(): Promise<RemoteDevice[]> {
+  return await invoke("get_remote_online");
+}
+
+export async function listFilesRemote(deviceId: string): Promise<FileEntry[]> {
+  return await invoke("list_files_remote", { deviceId });
+}
+
+export async function downloadFileRemote(
+  deviceId: string,
+  remotePath: string,
+  localPath: string
+): Promise<void> {
+  return await invoke("download_file_remote", {
+    deviceId,
+    remotePath,
+    localPath,
+  });
 }

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.*
@@ -28,12 +29,14 @@ import com.nas.app.ui.adaptive.universalFocusable
 import com.nas.app.ui.components.PairingDialog
 import com.nas.app.ui.screens.DevicesScreen
 import com.nas.app.ui.screens.FilesScreen
+import com.nas.app.ui.screens.PoolScreen
 import com.nas.app.ui.screens.ShareScreen
 import com.nas.app.ui.screens.SyncScreen
 import kotlinx.coroutines.launch
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
     object Devices : Screen("devices", "Devices", Icons.Default.Devices)
+    object Pool : Screen("pool", "Pool", Icons.Default.Layers)
     object Share : Screen("share", "Share", Icons.Default.Share)
     object Sync : Screen("sync", "Sync", Icons.Default.Sync)
     object Files : Screen("files/{address}/{deviceName}", "Files", Icons.Default.Folder) {
@@ -56,8 +59,8 @@ fun MainAppNavigation() {
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val isPrimaryTab = currentRoute in listOf(Screen.Devices.route, Screen.Share.route, Screen.Sync.route)
-    val tabs = listOf(Screen.Devices, Screen.Share, Screen.Sync)
+    val isPrimaryTab = currentRoute in listOf(Screen.Devices.route, Screen.Pool.route, Screen.Share.route, Screen.Sync.route)
+    val tabs = listOf(Screen.Devices, Screen.Pool, Screen.Share, Screen.Sync)
     val firstTabFocus = remember { FocusRequester() }
 
     fun navigateTab(route: String) {
@@ -131,6 +134,7 @@ fun MainAppNavigation() {
                     )
                 }
                 composable(Screen.Sync.route) { SyncScreen() }
+                composable(Screen.Pool.route) { PoolScreen() }
                 composable(Screen.Files.route) { backStackEntry ->
                     val address = backStackEntry.arguments?.getString("address")?.let { java.net.URLDecoder.decode(it, "UTF-8") } ?: ""
                     val deviceName = backStackEntry.arguments?.getString("deviceName")?.let { java.net.URLDecoder.decode(it, "UTF-8") } ?: "Device"
@@ -199,6 +203,7 @@ fun MainAppNavigation() {
                     )
                 }
                 composable(Screen.Sync.route) { SyncScreen() }
+                composable(Screen.Pool.route) { PoolScreen() }
                 composable(Screen.Files.route) { backStackEntry ->
                     val address = backStackEntry.arguments?.getString("address")?.let { java.net.URLDecoder.decode(it, "UTF-8") } ?: ""
                     val deviceName = backStackEntry.arguments?.getString("deviceName")?.let { java.net.URLDecoder.decode(it, "UTF-8") } ?: "Device"
@@ -271,6 +276,7 @@ fun MainAppNavigation() {
                     )
                 }
                 composable(Screen.Sync.route) { SyncScreen() }
+                composable(Screen.Pool.route) { PoolScreen() }
                 composable(Screen.Files.route) { backStackEntry ->
                     val address = backStackEntry.arguments?.getString("address")?.let { java.net.URLDecoder.decode(it, "UTF-8") } ?: ""
                     val deviceName = backStackEntry.arguments?.getString("deviceName")?.let { java.net.URLDecoder.decode(it, "UTF-8") } ?: "Device"

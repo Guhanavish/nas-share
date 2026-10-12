@@ -28,8 +28,7 @@ pub struct Database {
 }
 
 impl Database {
-    pub fn init() -> Result<Self, String> {
-        let app_dir = dirs::data_dir()
+    pub fn init() -> Result<Self, String> {        let app_dir = dirs::data_dir()
             .ok_or_else(|| "Cannot find data directory".to_string())?
             .join("nas-share");
         fs::create_dir_all(&app_dir).map_err(|e| e.to_string())?;
@@ -37,6 +36,41 @@ impl Database {
         let db_path = app_dir.join("nas.db");
         let conn = Connection::open(&db_path).map_err(|e| e.to_string())?;
 
+        conn.execute_batch(
+            r#"
+            CREATE TABLE IF NOT EXISTS trusted_devices (
+                device_id TEXT PRIMARY KEY,
+                device_name TEXT NOT NULL,
+                pubkey TEXT NOT NULL,
+                pinned_at INTEGER NOT NULL,
+                last_seen INTEGER,
+                is_revoked INTEGER NOT NULL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS shared_folders (
+                id TEXT PRIMARY KEY,
+                path TEXT NOT NULL,
+                label TEXT NOT NULL,
+                acl TEXT NOT NULL DEFAULT 'READ',
+                enabled INTEGER NOT NULL DEFAULT 1
+            );
+
+            CREATE TABLE IF NOT EXISTS settings (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            );
+            "#,
+        )
+        .map_err(|e| e.to_string())?;
+
+        Ok(Database {
+            conn: Arc::new(Mutex::new(conn)),
+        })
+    }
+
+    /// In-memory fallback so the UI can still open when the on-disk DB fails.
+    pub fn ephemeral() -> Result<Self, String> {
+        let conn = Connection::open_in_memory().map_err(|e| e.to_string())?;
         conn.execute_batch(
             r#"
             CREATE TABLE IF NOT EXISTS trusted_devices (

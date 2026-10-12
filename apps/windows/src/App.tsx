@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
-import { Laptop, Folder, Share2, RefreshCw, HardDrive } from "lucide-react";
+import { Laptop, Folder, Layers, Share2, RefreshCw, HardDrive } from "lucide-react";
 import { DevicesPage } from "./pages/DevicesPage";
 import { FilesPage } from "./pages/FilesPage";
+import { PoolPage } from "./pages/PoolPage";
 import { SharePage } from "./pages/SharePage";
 import { SyncPage } from "./pages/SyncPage";
 import { PairingDialog } from "./pages/PairingDialog";
 import { getDeviceInfo } from "./lib/tauri";
 
-type Tab = "devices" | "files" | "share" | "sync";
+type Tab = "devices" | "pool" | "files" | "share" | "sync";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>("devices");
@@ -57,6 +58,18 @@ export default function App() {
             >
               <Laptop className="w-4 h-4" />
               Devices
+            </button>
+
+            <button
+              onClick={() => setActiveTab("pool")}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition ${
+                activeTab === "pool"
+                  ? "bg-primary text-white shadow-md shadow-blue-500/20"
+                  : "text-gray-400 hover:text-white hover:bg-[#262A33]"
+              }`}
+            >
+              <Layers className="w-4 h-4" />
+              Pool
             </button>
 
             {selectedDevice && (
@@ -117,6 +130,8 @@ export default function App() {
             onOpenPairing={() => setPairingOpen(true)}
           />
         )}
+
+        {activeTab === "pool" && <PoolPage />}
 
         {activeTab === "files" && selectedDevice && (
           <FilesPage
