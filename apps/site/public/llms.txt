@@ -1,0 +1,19 @@
+# NAS Share — llms.txt
+# Your devices are the cloud: pool phones, TVs and PCs into one private section.
+
+## What it is
+- Free MIT app. Android APK (phone, tablet, Google TV) plus Windows EXE (installer and portable).
+- Every device runs an embedded file server and a file browser. Pair with a single-use 8-character code.
+- Pool view merges every trusted device into one list. Offline devices show greyed.
+- LAN first over direct HTTP. Anywhere else, a Cloudflare Worker relays signaling (and file chunks as fallback). Files are never stored on a server.
+
+## Key pages
+- Home and downloads: https://nas-share-c941u6fq5-gt4.vercel.app/
+- Setup guides: https://nas-share-c941u6fq5-gt4.vercel.app/docs
+- Release history: https://nas-share-c941u6fq5-gt4.vercel.app/changelog
+- Terms: https://nas-share-c941u6fq5-gt4.vercel.app/terms
+- Privacy: https://nas-share-c941u6fq5-gt4.vercel.app/privacy
+
+## Source
+- Repo: https://github.com/Guhanavish/nas-share
+- Latest release: https://github.com/Guhanavish/nas-share/releases/latest

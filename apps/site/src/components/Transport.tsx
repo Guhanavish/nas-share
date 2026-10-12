@@ -45,7 +45,7 @@ export function Transport() {
       <SectionHead
         eyebrow="transport"
         title="Right pipe for the moment"
-        sub="Pool picks LAN when it can, relay when it must — and tells you which."
+        sub="Pool picks LAN when it can and relay when it must, and tells you which."
       />
       <Reveal>
         <div ref={barsRef} className="mx-auto max-w-3xl space-y-5 rounded-3xl border border-line bg-panel p-8">

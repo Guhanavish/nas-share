@@ -15,7 +15,7 @@ const features = [
   {
     icon: Layers,
     title: "One Pool section",
-    body: "Every trusted device's files merged into a single list with device badges. Same file on two devices? Two tagged rows — no silent dedupe.",
+    body: "Every trusted device's files merged into a single list with device badges. Same file on two devices shows as two tagged rows. No silent dedupe.",
   },
   {
     icon: QrCode,
@@ -30,7 +30,7 @@ const features = [
   {
     icon: CloudOff,
     title: "Offline, greyed",
-    body: "Dead devices stay visible but dimmed and untappable. Back online and the section lights up — no re-pairing.",
+    body: "Dead devices stay visible but dimmed and untappable. When one returns, its section lights up with no re-pairing.",
   },
   {
     icon: PlayCircle,

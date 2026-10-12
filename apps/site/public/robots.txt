@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://nas-share-c941u6fq5-gt4.vercel.app/sitemap.xml

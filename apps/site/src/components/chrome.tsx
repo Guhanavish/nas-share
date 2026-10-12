@@ -107,6 +107,8 @@ export function Footer() {
             <Link to="/#download" className="block hover:text-snow">Download</Link>
             <Link to="/docs" className="block hover:text-snow">Docs</Link>
             <Link to="/changelog" className="block hover:text-snow">Changelog</Link>
+            <Link to="/terms" className="block hover:text-snow">Terms</Link>
+            <Link to="/privacy" className="block hover:text-snow">Privacy</Link>
           </div>
         </div>
         <div>

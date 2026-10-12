@@ -156,7 +156,7 @@ export function Hero() {
           <p className="mx-auto mt-6 max-w-2xl text-lg text-fog">
             Pool your phone, TV and PC into{" "}
             <span className="text-snow font-semibold">one section</span>. Pair
-            with an 8-character code. Files fly direct — LAN or relay,{" "}
+            with an 8-character code. Files fly direct over LAN or relay,{" "}
             <span className="text-snow font-semibold">never stored on a server</span>.
           </p>
           <div className="mt-9 flex flex-wrap items-center justify-center gap-4">

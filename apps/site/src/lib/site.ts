@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 
 /**
  * ONE-LINE SETUP: after creating the GitHub repo + first Release, set this
- * to "owner/repo" (or VITE_GITHUB_REPO env at build time). Everything —
- * download buttons, version badge, changelog — follows automatically.
+ * to "owner/repo" (or VITE_GITHUB_REPO env at build time). Everything
+ * follows automatically: download buttons, version badge, changelog.
  */
 export const GITHUB_REPO =
   import.meta.env.VITE_GITHUB_REPO?.trim || "Guhanavish/nas-share";
@@ -32,7 +32,7 @@ export interface ReleaseInfo {
 }
 
 export function formatBytes(bytes: number): string {
-  if (!bytes) return "—";
+  if (!bytes) return "0 B";
   if (bytes < 1024) return `${bytes} B`;
   const kb = bytes / 1024;
   if (kb < 1024) return `${kb.toFixed(1)} KB`;

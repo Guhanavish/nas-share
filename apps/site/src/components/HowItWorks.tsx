@@ -23,7 +23,7 @@ const steps = [
     icon: ArrowLeftRight,
     n: "03",
     title: "Identities pin",
-    body: "Ed25519 keys exchange once and pin. Next time both devices connect automatically — no code.",
+    body: "Ed25519 keys exchange once and pin. Next time both devices connect automatically, with no code.",
   },
   {
     icon: BadgeCheck,
@@ -69,7 +69,7 @@ export function HowItWorks() {
         <SectionHead
           eyebrow="pairing"
           title="Paired in under a minute"
-          sub="Scroll — the steps ride past like a filmstrip."
+          sub="Scroll sideways through the steps like a filmstrip."
         />
       </div>
       <div ref={wrapRef} className="overflow-hidden md:h-[70vh] md:overflow-visible">

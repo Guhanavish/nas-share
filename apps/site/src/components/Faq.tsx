@@ -6,7 +6,7 @@ import { Reveal, SectionHead } from "./ui";
 const faqs = [
   {
     q: "Do my files go through your servers?",
-    a: "No. On WiFi, devices talk directly over HTTP. Anywhere else, the Cloudflare Worker only introduces the two devices (signaling) or forwards encrypted chunks as a last resort — files are never stored anywhere.",
+    a: "No. On WiFi, devices talk directly over HTTP. Anywhere else, the Cloudflare Worker only introduces the two devices (signaling) or forwards encrypted chunks as a last resort. Files are never stored anywhere.",
   },
   {
     q: "Do I need an account?",
@@ -14,7 +14,7 @@ const faqs = [
   },
   {
     q: "Will it work on my TV?",
-    a: "Yes — the same APK installs on phones, tablets and Google TV. The TV interface is fully remote-driven with focus halos and large type.",
+    a: "Yes. The same APK installs on phones, tablets and Google TV. The TV interface is fully remote-driven with focus halos and large type.",
   },
   {
     q: "What if a device is offline?",
@@ -26,7 +26,7 @@ const faqs = [
   },
   {
     q: "Is it open source?",
-    a: "MIT licensed. Android (Kotlin), Windows (Tauri + Rust), Worker (Hono + Durable Objects) — audit anything.",
+    a: "MIT licensed. Android (Kotlin), Windows (Tauri + Rust), Worker (Hono + Durable Objects). Audit anything.",
   },
 ];
 

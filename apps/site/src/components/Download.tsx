@@ -1,4 +1,5 @@
-import { Smartphone, MonitorDown, HardDriveDownload, FileCheck2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Smartphone, MonitorDown, HardDriveDownload, FileCheck2, WifiOff } from "lucide-react";
 import { Reveal, SectionHead } from "./ui";
 import {
   APK_ASSET,
@@ -18,6 +19,15 @@ export function Download({ release }: { release: ReleaseInfo | null }) {
   const apk = asset(release, APK_ASSET);
   const setup = asset(release, EXE_SETUP_ASSET);
   const portable = asset(release, EXE_PORTABLE_ASSET);
+  const [settled, setSettled] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setSettled(true), 8000);
+    if (release) setSettled(true);
+    return () => clearTimeout(t);
+  }, [release]);
+
+  const offline = settled && !release;
 
   return (
     <section id="download" className="border-t border-line bg-panel/60 py-24">
@@ -32,6 +42,14 @@ export function Download({ release }: { release: ReleaseInfo | null }) {
           }
         />
 
+        {offline && (
+          <p className="mx-auto mb-6 flex max-w-xl items-center justify-center gap-2 rounded-2xl border border-line bg-card px-4 py-3 text-sm text-fog">
+            <WifiOff className="h-4 w-4 shrink-0 text-warn" />
+            Live version info did not load. Buttons below still open the
+            releases page so you can download manually.
+          </p>
+        )}
+
         <div className="grid gap-5 md:grid-cols-2">
           {/* APK card */}
           <Reveal>
@@ -41,7 +59,7 @@ export function Download({ release }: { release: ReleaseInfo | null }) {
               </span>
               <h3 className="font-display mt-4 text-2xl font-bold">Android APK</h3>
               <p className="mt-2 text-sm text-fog">
-                One universal build — phone, tablet and Google TV. D-pad ready,
+                One universal build for phone, tablet and Google TV. D-pad ready,
                 foreground sharing, background sync.
               </p>
               <ul className="mt-4 space-y-1.5 font-mono text-xs text-fog">
@@ -72,14 +90,14 @@ export function Download({ release }: { release: ReleaseInfo | null }) {
               </span>
               <h3 className="font-display mt-4 text-2xl font-bold">Windows EXE</h3>
               <p className="mt-2 text-sm text-fog">
-                Tauri desktop — ~15 MB, tray app, autostart, embedded file
+                Tauri desktop at ~15 MB: tray app, autostart, embedded file
                 server on :8743. Installer or portable.
               </p>
               <ul className="mt-4 space-y-1.5 font-mono text-xs text-fog">
                 <li>windows 10/11 · webview2 runtime</li>
                 <li>
-                  installer {setup ? formatBytes(setup.size) : "—"} · portable{" "}
-                  {portable ? formatBytes(portable.size) : "—"}
+                  installer {setup ? formatBytes(setup.size) : "n/a"} · portable{" "}
+                  {portable ? formatBytes(portable.size) : "n/a"}
                 </li>
               </ul>
               <div className="mt-auto space-y-3 pt-6">
