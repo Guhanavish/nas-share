@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
  * download buttons, version badge, changelog — follows automatically.
  */
 export const GITHUB_REPO =
-  import.meta.env.VITE_GITHUB_REPO?.trim || "YOUR-USER/nas-share";
+  import.meta.env.VITE_GITHUB_REPO?.trim || "Guhanavish/nas-share";
 
 export const APK_ASSET = "app-release.apk";
 export const EXE_SETUP_ASSET = "NAS-Share-setup.exe";

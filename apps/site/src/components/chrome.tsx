@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { HardDrive, Menu, X } from "lucide-react";
-import { useLatestRelease } from "../lib/site";
+import { GITHUB_REPO, releasesPage, useLatestRelease } from "../lib/site";
 
 const links = [
   { to: "/", label: "Home" },
@@ -112,10 +112,10 @@ export function Footer() {
         <div>
           <p className="font-display text-sm font-semibold">Project</p>
           <div className="mt-3 space-y-2 text-sm text-fog">
-            <a href="https://github.com" target="_blank" rel="noreferrer" className="block hover:text-snow">
+            <a href={`https://github.com/${GITHUB_REPO}`} target="_blank" rel="noreferrer" className="block hover:text-snow">
               GitHub
             </a>
-            <a href="https://github.com" target="_blank" rel="noreferrer" className="block hover:text-snow">
+            <a href={releasesPage} target="_blank" rel="noreferrer" className="block hover:text-snow">
               Releases
             </a>
             <span className="block">MIT License</span>
