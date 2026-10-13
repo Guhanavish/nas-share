@@ -310,9 +310,8 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
         .manage(app_state)
-        .setup(|app| {
+        .setup(move |app| {
             let _ = TrayManager::setup(app.handle());
-            let port = port; // copy for the 'static spawn below
 
             // Start mDNS browsing + embedded file server INSIDE the Tauri
             // async runtime (tokio::spawn before this point panics: no reactor).
