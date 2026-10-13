@@ -312,6 +312,7 @@ pub fn run() {
         .manage(app_state)
         .setup(|app| {
             let _ = TrayManager::setup(app.handle());
+            let port = port; // copy for the 'static spawn below
 
             // Start mDNS browsing + embedded file server INSIDE the Tauri
             // async runtime (tokio::spawn before this point panics: no reactor).
