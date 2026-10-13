@@ -22,7 +22,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
           cache-dependency-path: apps/windows/package-lock.json
 
@@ -39,6 +39,8 @@ jobs:
 
       - name: Build Tauri app (portable EXE + NSIS installer)
         uses: tauri-apps/tauri-action@v0
+        with:
+          projectPath: apps/windows
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

@@ -1,4 +1,4 @@
-﻿[package]
+[package]
 name = "nas-share-desktop"
 version = "0.1.0"
 description = "Nasend Windows Desktop"
