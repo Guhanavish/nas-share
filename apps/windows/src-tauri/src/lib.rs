@@ -1,4 +1,4 @@
-﻿pub mod db;
+pub mod db;
 pub mod discovery;
 pub mod identity;
 pub mod pairing;
@@ -10,7 +10,7 @@ pub mod tray;
 
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
-use tauri::State;
+use tauri::{Manager, State};
 
 use crate::db::{Database, SharedFolder, TrustedDevice};
 use crate::discovery::{DiscoveredDevice, MdnsDiscovery};
@@ -306,7 +306,7 @@ pub fn run() {
         relay: RelayMesh::new(),
     };
 
-    tauri::Builder::default()
+    let result = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
         .manage(app_state)
