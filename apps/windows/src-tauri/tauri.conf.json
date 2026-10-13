@@ -39,8 +39,4 @@
       }
     }
   },
-  "plugins": {
-    "dialog": {},
-    "notification": {}
-  }
 }
