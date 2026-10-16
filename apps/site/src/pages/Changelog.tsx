@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -131,24 +131,23 @@ export function Changelog() {
   return (
     <div className="mx-auto max-w-3xl px-5 pt-28 pb-24">
       <Breadcrumbs trail={[{ label: "Changelog" }]} />
-      <p className="font-mono text-xs uppercase tracking-[0.3em] text-accent">changelog</p>
-      <h1 className="font-display mt-3 text-4xl font-bold">What shipped</h1>
-      <p className="mt-2 text-fog">Every release, straight from GitHub.</p>
+      <p className="font-mono text-xs uppercase tracking-[0.3em] text-vermilion">02 // 歴 CHANGELOG</p>
+      <h1 className="font-display mt-3 text-4xl font-extrabold text-snow sm:text-5xl">Release History</h1>
+      <p className="mt-2 text-fog">Live releases directly from the GitHub repository.</p>
 
       <div className="mt-8">
         {status === "loading" && <LoadingSkeleton />}
 
         {status === "network" && (
-          <div className="rounded-3xl border border-line bg-panel p-10 text-center">
+          <div className="kage-card rounded-3xl p-10 text-center">
             <WifiOff className="mx-auto h-8 w-8 text-warn" />
-            <h2 className="font-display mt-4 text-xl font-semibold">Can't reach GitHub</h2>
+            <h2 className="font-display mt-4 text-xl font-semibold text-snow">Can't reach GitHub</h2>
             <p className="mx-auto mt-2 max-w-sm text-sm text-fog">
-              Check your internet connection, then try again. Your apps are
-              unaffected, this page just lists releases.
+              Check your network connection. Your installed apps continue working normally offline.
             </p>
             <button
               onClick={retry}
-              className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-3 font-semibold text-white"
+              className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-vermilion px-6 py-3 font-semibold text-white shadow-[0_0_20px_rgba(255,59,48,0.3)] hover:bg-vermilion/90"
             >
               <RotateCcw className="h-4 w-4" /> Try again
             </button>
@@ -156,17 +155,16 @@ export function Changelog() {
         )}
 
         {status === "server" && (
-          <div className="rounded-3xl border border-line bg-panel p-10 text-center">
+          <div className="kage-card rounded-3xl p-10 text-center">
             <TriangleAlert className="mx-auto h-8 w-8 text-warn" />
-            <h2 className="font-display mt-4 text-xl font-semibold">Something went wrong</h2>
+            <h2 className="font-display mt-4 text-xl font-semibold text-snow">API Limit or Temporary Server Hiccup</h2>
             <p className="mx-auto mt-2 max-w-sm text-sm text-fog">
-              GitHub answered with an error. Wait a moment and retry, or open
-              the releases page directly.
+              GitHub answered with an error. You can visit the official releases page directly.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <button
                 onClick={retry}
-                className="inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-3 font-semibold text-white"
+                className="inline-flex items-center gap-2 rounded-2xl bg-vermilion px-6 py-3 font-semibold text-white shadow-[0_0_20px_rgba(255,59,48,0.3)] hover:bg-vermilion/90"
               >
                 <RotateCcw className="h-4 w-4" /> Try again
               </button>
@@ -174,7 +172,7 @@ export function Changelog() {
                 href={releasesPage}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-2xl border border-line bg-card px-6 py-3 font-semibold hover:border-primary/60"
+                className="rounded-2xl border border-line bg-card px-6 py-3 font-semibold text-snow hover:border-white/20"
               >
                 Releases on GitHub
               </a>
@@ -183,21 +181,21 @@ export function Changelog() {
         )}
 
         {status === "empty" && (
-          <div className="rounded-3xl border border-dashed border-line p-10 text-center text-sm text-fog">
-            No releases published yet. Watch the repo and check back soon.
+          <div className="kage-card rounded-3xl p-10 text-center text-sm text-fog">
+            No releases published yet. Watch the repository and check back soon.
             <br />
-            <Link to="/" className="mt-2 inline-block underline hover:text-snow">
-              Back to download
+            <Link to="/#chapter-05" className="mt-3 inline-block text-vermilion underline hover:text-snow">
+              Back to Sovereign Vault Downloads
             </Link>
           </div>
         )}
 
         {(status === "ready" || (status !== "loading" && releases.length > 0)) &&
           releases.length > 0 && (
-            <div className="space-y-5">
+            <div className="space-y-6">
               {releases.map((r, i) => (
                 <Reveal key={`${r.tag}-${i}`} delay={Math.min(i, 3) * 0.04}>
-                  <article className="rounded-3xl border border-line bg-panel p-7">
+                  <article className="kage-card rounded-3xl p-7">
                     <div className="flex flex-wrap items-center gap-3">
                       <span className="flex items-center gap-1.5 rounded-full bg-primary/15 px-3 py-1 font-mono text-xs text-primary">
                         <Tag className="h-3 w-3" />

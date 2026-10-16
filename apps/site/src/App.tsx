@@ -26,11 +26,14 @@ function ScrollManager() {
 
   useEffect(() => {
     if (hash) {
-      const el = document.querySelector(hash);
-      if (el) {
-        el.scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
-        return;
-      }
+      // Delay slightly for elements to mount if route changed
+      const timer = setTimeout(() => {
+        const el = document.querySelector(hash);
+        if (el) {
+          el.scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
+        }
+      }, 50);
+      return () => clearTimeout(timer);
     }
     window.scrollTo(0, 0);
   }, [pathname, hash]);
@@ -38,19 +41,19 @@ function ScrollManager() {
   return null;
 }
 
-/** Skeleton matching subpage layout so lazy loads never flash blank. */
+/** Skeleton matching Kage subpage layout so lazy loads feel seamless */
 function PageSkeleton() {
   return (
-    <div className="mx-auto max-w-3xl animate-pulse px-5 pt-32 pb-24" aria-label="Loading page">
-      <div className="h-4 w-40 rounded bg-card" />
-      <div className="mt-4 h-10 w-3/4 rounded-xl bg-card" />
-      <div className="mt-2 h-4 w-1/2 rounded bg-card" />
-      <div className="mt-8 space-y-4">
+    <div className="mx-auto max-w-4xl animate-pulse px-5 pt-32 pb-24" aria-label="Loading page">
+      <div className="h-4 w-36 rounded bg-card/60" />
+      <div className="mt-4 h-12 w-2/3 rounded-xl bg-card/60" />
+      <div className="mt-3 h-4 w-1/2 rounded bg-card/40" />
+      <div className="mt-10 space-y-4">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="rounded-2xl border border-line bg-panel p-6">
-            <div className="h-5 w-1/3 rounded bg-card" />
-            <div className="mt-3 h-4 w-full rounded bg-card" />
-            <div className="mt-2 h-4 w-5/6 rounded bg-card" />
+          <div key={i} className="kage-card rounded-2xl p-6">
+            <div className="h-5 w-1/3 rounded bg-card/60" />
+            <div className="mt-3 h-4 w-full rounded bg-card/40" />
+            <div className="mt-2 h-4 w-4/5 rounded bg-card/30" />
           </div>
         ))}
       </div>
@@ -63,7 +66,7 @@ export default function App() {
 
   useEffect(() => {
     if (reduced) return;
-    const lenis = new Lenis({ lerp: 0.09, smoothWheel: true });
+    const lenis = new Lenis({ lerp: 0.08, smoothWheel: true });
     let raf = 0;
     const loop = (t: number) => {
       lenis.raf(t);
