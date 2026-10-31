@@ -1,33 +1,41 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { HardDrive, Menu, X, ExternalLink, ShieldCheck } from "lucide-react";
-import { GITHUB_REPO, releasesPage, useLatestRelease } from "../lib/site";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X, ExternalLink, BookOpen } from "lucide-react";
+import { NasendLogo } from "./brand/NasendLogo";
+import { GITHUB_REPO } from "../lib/site";
 import { ZenAudioToggle, zenAudioEngine } from "./audio/ZenAudio";
+
+function GitHubIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12Z" />
+    </svg>
+  );
+}
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const [activeChapter, setActiveChapter] = useState(1);
-  const release = useLatestRelease();
+  const [activeSection, setActiveSection] = useState("hero");
   const loc = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const onScroll = () => {
-      setScrolled(window.scrollY > 24);
+      setScrolled(window.scrollY > 20);
 
-      // Determine active chapter based on scroll position
-      const scrollY = window.scrollY;
-      const totalH = Math.max(
-        document.documentElement.scrollHeight - window.innerHeight,
-        1
-      );
-      const ratio = scrollY / totalH;
-
-      if (ratio < 0.2) setActiveChapter(1);
-      else if (ratio < 0.4) setActiveChapter(2);
-      else if (ratio < 0.6) setActiveChapter(3);
-      else if (ratio < 0.8) setActiveChapter(4);
-      else setActiveChapter(5);
+      // Simple scroll spy
+      const sections = ["hero", "constellation", "pairing", "streaming", "vault", "faq"];
+      for (const s of sections) {
+        const el = document.getElementById(s);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= 200 && rect.bottom >= 200) {
+            setActiveSection(s);
+            break;
+          }
+        }
+      }
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -36,17 +44,17 @@ export function Navbar() {
 
   useEffect(() => setOpen(false), [loc.pathname]);
 
-  const chapters = [
-    { id: "chapter-01", num: "01", kanji: "門", label: "Threshold" },
-    { id: "chapter-02", num: "02", kanji: "灯", label: "Peers" },
-    { id: "chapter-03", num: "03", kanji: "契", label: "Altar" },
-    { id: "chapter-04", num: "04", kanji: "流", label: "Stream" },
-    { id: "chapter-05", num: "05", kanji: "蔵", label: "Vault" },
+  const navLinks = [
+    { id: "constellation", label: "Constellation" },
+    { id: "pairing", label: "Pairing Lab" },
+    { id: "streaming", label: "Streaming" },
+    { id: "vault", label: "Downloads" },
+    { id: "faq", label: "FAQ" },
   ];
 
-  const scrollToChapter = (id: string) => {
+  const scrollTo = (id: string) => {
     if (loc.pathname !== "/") {
-      window.location.hash = `#${id}`;
+      navigate(`/#${id}`);
       return;
     }
     const el = document.getElementById(id);
@@ -60,152 +68,108 @@ export function Navbar() {
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "border-b border-line bg-ink/80 backdrop-blur-xl"
+          ? "border-b border-white/10 bg-ink/75 backdrop-blur-2xl shadow-lg shadow-black/40"
           : "bg-transparent"
       }`}
     >
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
-        {/* Brand */}
-        <Link to="/" className="flex items-center gap-2.5 group">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-vermilion text-white shadow-[0_0_20px_rgba(255,59,48,0.4)] transition group-hover:scale-105">
-            <HardDrive className="h-5 w-5" />
-          </span>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-1.5">
-              <span className="font-display font-extrabold tracking-tight text-snow">
-                Nasend
-              </span>
-              <span className="font-serif text-xs text-vermilion" title="Kage — Shadow Sovereignty">
-                影
-              </span>
-              {release && (
-                <span className="hidden sm:inline-block rounded-full border border-line bg-card/60 px-2 py-0.5 font-mono text-[10px] text-accent">
-                  {release.tag}
-                </span>
-              )}
-            </div>
-          </div>
+      <div className="mx-auto flex h-18 max-w-6xl items-center justify-between px-5">
+        {/* Brand Logo with Nasend Monogram */}
+        <Link to="/" className="flex items-center gap-3 group">
+          <NasendLogo size={36} withText={true} />
         </Link>
 
-        {/* Chapter Walkthrough Quick Jump (Desktop) */}
+        {/* Desktop Quick Nav Anchors */}
         {loc.pathname === "/" && (
-          <nav className="hidden lg:flex items-center gap-1 rounded-full border border-line bg-card/50 p-1 font-mono text-xs backdrop-blur">
-            {chapters.map((c, i) => (
+          <nav className="hidden md:flex items-center gap-1 px-3 py-1.5 rounded-full border border-white/10 bg-white/[0.04] backdrop-blur-xl">
+            {navLinks.map((link) => (
               <button
-                key={c.id}
-                onClick={() => scrollToChapter(c.id)}
-                className={`flex items-center gap-1.5 rounded-full px-3 py-1 transition-all ${
-                  activeChapter === i + 1
-                    ? "bg-vermilion text-white shadow-[0_0_12px_rgba(255,59,48,0.5)] font-semibold"
-                    : "text-fog hover:text-snow hover:bg-white/5"
+                key={link.id}
+                onClick={() => scrollTo(link.id)}
+                className={`px-3 py-1 rounded-full text-xs font-mono transition-all cursor-pointer ${
+                  activeSection === link.id
+                    ? "bg-cyan-mesh/15 text-cyan-mesh font-semibold border border-cyan-mesh/30"
+                    : "text-fog hover:text-white hover:bg-white/5 border border-transparent"
                 }`}
               >
-                <span>{c.num}</span>
-                <span className="font-serif text-[11px] opacity-70">{c.kanji}</span>
-                <span className="hidden xl:inline">{c.label}</span>
+                {link.label}
               </button>
             ))}
           </nav>
         )}
 
-        {/* Right Actions */}
-        <div className="flex items-center gap-3">
+        {/* Right Actions: Audio, Docs, GitHub */}
+        <div className="hidden sm:flex items-center gap-3">
           <ZenAudioToggle />
 
-          <nav className="hidden md:flex items-center gap-5 text-xs font-mono text-fog">
-            <Link to="/docs" className="transition hover:text-snow">
-              Docs
-            </Link>
-            <Link to="/changelog" className="transition hover:text-snow">
-              Changelog
-            </Link>
-            <a
-              href={`https://github.com/${GITHUB_REPO}`}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-1 transition hover:text-snow"
-              title="GitHub Source"
-            >
-              <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
-                <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-              </svg>
-            </a>
-            <button
-              onClick={() => scrollToChapter("chapter-05")}
-              className="flex h-9 items-center gap-1.5 rounded-xl bg-vermilion px-4 font-display font-semibold text-white shadow-[0_0_20px_rgba(255,59,48,0.35)] transition hover:bg-vermilion/90 active:scale-95"
-            >
-              Get Apps
-            </button>
-          </nav>
-
-          <button
-            className="rounded-lg p-2 text-fog transition hover:text-snow md:hidden"
-            onClick={() => setOpen(!open)}
-            aria-label="Toggle Navigation Menu"
+          <Link
+            to="/docs"
+            className="px-3 py-1.5 rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-xs font-mono text-snow flex items-center gap-1.5 transition"
           >
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            <BookOpen className="w-3.5 h-3.5 text-cyan-mesh" />
+            <span>Docs</span>
+          </Link>
+
+          <a
+            href={`https://github.com/${GITHUB_REPO}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2 rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-snow hover:text-cyan-mesh transition"
+            aria-label="GitHub Repository"
+          >
+            <GitHubIcon />
+          </a>
+        </div>
+
+        {/* Mobile menu hamburger */}
+        <div className="flex items-center gap-2 md:hidden">
+          <ZenAudioToggle />
+          <button
+            onClick={() => setOpen(!open)}
+            className="p-2 rounded-xl border border-white/10 bg-white/[0.05] text-snow"
+            aria-label="Toggle menu"
+          >
+            {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Drawer Menu */}
       {open && (
-        <div className="border-b border-line bg-ink/95 px-5 py-6 backdrop-blur-2xl md:hidden animate-fadeIn">
-          <nav className="flex flex-col gap-4 text-sm font-mono text-fog">
-            <div className="grid grid-cols-5 gap-1 border-b border-line pb-4 text-center">
-              {chapters.map((c) => (
+        <div className="md:hidden border-b border-white/10 bg-ink/95 backdrop-blur-2xl px-5 py-6 space-y-4 animate-fade-in">
+          {loc.pathname === "/" && (
+            <div className="flex flex-col gap-2 pb-4 border-b border-white/10">
+              {navLinks.map((link) => (
                 <button
-                  key={c.id}
+                  key={link.id}
                   onClick={() => {
-                    scrollToChapter(c.id);
+                    scrollTo(link.id);
                     setOpen(false);
                   }}
-                  className="rounded-lg border border-line bg-card/60 p-2 text-xs hover:border-vermilion"
+                  className="text-left py-2 px-3 rounded-lg text-sm font-mono text-snow hover:bg-white/5"
                 >
-                  <p className="font-bold text-snow">{c.num}</p>
-                  <p className="font-serif text-[11px] text-vermilion">{c.kanji}</p>
+                  {link.label}
                 </button>
               ))}
             </div>
+          )}
 
-            <Link
-              to="/docs"
-              onClick={() => setOpen(false)}
-              className="py-1 text-snow hover:text-vermilion"
-            >
-              Architecture & Protocol Docs
+          <div className="flex flex-col gap-2 text-sm font-mono">
+            <Link to="/docs" className="py-2 px-3 rounded-lg text-snow hover:bg-white/5">
+              Documentation &amp; Protocol
             </Link>
-            <Link
-              to="/changelog"
-              onClick={() => setOpen(false)}
-              className="py-1 text-snow hover:text-vermilion"
-            >
-              Release Changelog
+            <Link to="/changelog" className="py-2 px-3 rounded-lg text-snow hover:bg-white/5">
+              Releases &amp; Changelog
             </Link>
-            <Link
-              to="/terms"
-              onClick={() => setOpen(false)}
-              className="py-1 text-snow hover:text-vermilion"
+            <a
+              href={`https://github.com/${GITHUB_REPO}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="py-2 px-3 rounded-lg text-cyan-mesh hover:bg-white/5 flex items-center justify-between"
             >
-              Sovereignty Terms
-            </Link>
-            <Link
-              to="/privacy"
-              onClick={() => setOpen(false)}
-              className="py-1 text-snow hover:text-vermilion"
-            >
-              Privacy Manifesto
-            </Link>
-            <button
-              onClick={() => {
-                scrollToChapter("chapter-05");
-                setOpen(false);
-              }}
-              className="mt-2 flex h-11 w-full items-center justify-center rounded-xl bg-vermilion text-sm font-semibold text-white shadow-[0_0_20px_rgba(255,59,48,0.4)]"
-            >
-              Download Windows & Android Apps
-            </button>
-          </nav>
+              <span>GitHub Source Code</span>
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          </div>
         </div>
       )}
     </header>
@@ -214,104 +178,41 @@ export function Navbar() {
 
 export function Footer() {
   return (
-    <footer className="relative border-t border-line bg-panel/80 px-5 pt-16 pb-12 text-xs text-fog backdrop-blur-xl">
-      <div className="mx-auto max-w-6xl">
-        <div className="grid gap-10 md:grid-cols-4">
-          {/* Col 1: Identity */}
-          <div className="md:col-span-2 space-y-3">
-            <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-vermilion text-white">
-                <HardDrive className="h-4 w-4" />
-              </span>
-              <span className="font-display text-base font-bold text-snow">Nasend // 影</span>
-              <span className="rounded-md border border-line bg-ink px-2 py-0.5 font-mono text-[10px] text-accent">
-                Device Cloud
-              </span>
-            </div>
-            <p className="max-w-md text-xs leading-relaxed text-fog">
-              A private device-as-NAS ecosystem built with Rust, Jetpack Compose,
-              and Cloudflare Workers. Your data remains in your living room, protected
-              by modern cryptography, zero subscription rent.
-            </p>
-            <div className="flex items-center gap-2 text-accent font-mono text-[11px] pt-1">
-              <ShieldCheck className="h-4 w-4" />
-              <span>Zero telemetry • Zero third-party trackers • 100% Open Protocol</span>
-            </div>
-          </div>
-
-          {/* Col 2: Navigation */}
-          <div>
-            <span className="font-mono text-xs uppercase tracking-wider text-snow font-semibold">
-              Ecosystem
-            </span>
-            <ul className="mt-3 space-y-2 font-mono text-xs">
-              <li>
-                <Link to="/docs" className="hover:text-snow transition">
-                  Protocol Specifications
-                </Link>
-              </li>
-              <li>
-                <Link to="/changelog" className="hover:text-snow transition">
-                  Releases & Changelog
-                </Link>
-              </li>
-              <li>
-                <a
-                  href={releasesPage}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-1 hover:text-snow transition"
-                >
-                  <span>GitHub Releases</span>
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              </li>
-              <li>
-                <a
-                  href={`https://github.com/${GITHUB_REPO}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-1 hover:text-snow transition"
-                >
-                  <span>Source Repository</span>
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Col 3: Legal & Sovereignty */}
-          <div>
-            <span className="font-mono text-xs uppercase tracking-wider text-snow font-semibold">
-              Sovereignty
-            </span>
-            <ul className="mt-3 space-y-2 font-mono text-xs">
-              <li>
-                <Link to="/privacy" className="hover:text-snow transition">
-                  Privacy Manifesto
-                </Link>
-              </li>
-              <li>
-                <Link to="/terms" className="hover:text-snow transition">
-                  Terms of Sovereignty
-                </Link>
-              </li>
-              <li>
-                <span className="text-fog/70">License: MIT Protocol</span>
-              </li>
-              <li>
-                <span className="text-fog/70">Signaling: Hono + Cloudflare DO</span>
-              </li>
-            </ul>
-          </div>
+    <footer className="relative border-t border-white/10 bg-ink/90 backdrop-blur-xl py-16 px-5">
+      <div className="mx-auto max-w-6xl w-full flex flex-col md:flex-row items-center justify-between gap-8 text-xs font-mono text-fog">
+        <div className="flex flex-col items-center md:items-start gap-2">
+          <NasendLogo size={28} withText={true} />
+          <p className="text-fog/70 mt-1 max-w-sm text-center md:text-left">
+            Sovereign device-as-NAS ecosystem. Zero cloud rent, zero tracking, total cryptographic privacy.
+          </p>
         </div>
 
-        {/* Bottom bar */}
-        <div className="mt-12 flex flex-col sm:flex-row items-center justify-between border-t border-line/50 pt-6 font-mono text-[11px] text-fog/70 gap-3">
-          <p>© {new Date().getFullYear()} Nasend Ecosystem. Inspired by the Kage 影 aesthetic.</p>
-          <p className="text-center sm:text-right">
-            Phone ↔ TV ↔ PC • LAN Direct & WebRTC DTLS WAN
-          </p>
+        <div className="flex flex-wrap items-center justify-center gap-6">
+          <Link to="/docs" className="hover:text-white transition">
+            Docs
+          </Link>
+          <Link to="/changelog" className="hover:text-white transition">
+            Changelog
+          </Link>
+          <Link to="/terms" className="hover:text-white transition">
+            Terms
+          </Link>
+          <Link to="/privacy" className="hover:text-white transition">
+            Privacy
+          </Link>
+          <a
+            href={`https://github.com/${GITHUB_REPO}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-cyan-mesh transition"
+          >
+            GitHub
+          </a>
+        </div>
+
+        <div className="text-center md:text-right space-y-1">
+          <p className="text-snow">MIT License • Built by Guhanavish</p>
+          <p className="text-fog/50">Production Verified Device Mesh</p>
         </div>
       </div>
     </footer>

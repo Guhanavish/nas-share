@@ -1,19 +1,21 @@
 @import "tailwindcss";
 
 @theme {
-  --color-ink: #05070a;
-  --color-panel: #0a0e17;
-  --color-card: #101624;
+  --color-ink: #060810;
+  --color-panel: #0b101e;
+  --color-card: #0f172a;
   --color-line: rgba(255, 255, 255, 0.08);
-  --color-vermilion: #ff3b30;
-  --color-vermilion-dark: #b91c1c;
-  --color-amber: #f59e0b;
-  --color-amber-glow: rgba(245, 158, 11, 0.35);
-  --color-cyan-mesh: #06b6d4;
-  --color-primary: #3b82f6;
-  --color-accent: #10b981;
-  --color-fog: #8b949e;
-  --color-snow: #f0f6fc;
+  --color-line-glow: rgba(56, 189, 248, 0.25);
+  
+  --color-cyan-mesh: #38bdf8;
+  --color-indigo-mesh: #818cf8;
+  --color-emerald-mesh: #34d399;
+  --color-amber-mesh: #fbbf24;
+  --color-violet-mesh: #a855f7;
+
+  --color-fog: #94a3b8;
+  --color-snow: #f8fafc;
+  
   --font-display: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
@@ -49,19 +51,19 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbar for desktop */
+/* Custom modern scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #05070a;
+  background: #060810;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 59, 48, 0.4);
+  background: rgba(56, 189, 248, 0.4);
 }
 
 .font-display {
@@ -72,55 +74,71 @@ body {
   font-family: var(--font-mono);
 }
 
-/* Glow & Atmospheric effects */
-.text-glow-vermilion {
-  text-shadow: 0 0 24px rgba(255, 59, 48, 0.6), 0 0 48px rgba(255, 59, 48, 0.25);
-}
-
-.text-glow-amber {
-  text-shadow: 0 0 24px rgba(245, 158, 11, 0.6), 0 0 48px rgba(245, 158, 11, 0.25);
-}
-
-.text-glow-cyan {
-  text-shadow: 0 0 24px rgba(6, 182, 212, 0.6), 0 0 48px rgba(6, 182, 212, 0.25);
-}
-
-/* Double-bezel stone card pattern */
-.kage-card {
+/* Glassmorphic frosted surfaces */
+.glass-panel {
   position: relative;
-  background: linear-gradient(180deg, rgba(16, 22, 36, 0.85) 0%, rgba(10, 14, 23, 0.95) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.015) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08), 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12);
+}
+
+.glass-card {
+  position: relative;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.65) 0%, rgba(11, 16, 30, 0.85) 100%);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08), 0 16px 36px -10px rgba(0, 0, 0, 0.6);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
-.kage-card:hover {
-  border-color: rgba(255, 255, 255, 0.16);
-  transform: translateY(-2px);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 24px 48px -15px rgba(0, 0, 0, 0.85);
+.glass-card:hover {
+  border-color: rgba(56, 189, 248, 0.3);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 24px 48px -12px rgba(56, 189, 248, 0.15);
 }
 
-/* Japanese vertical & editorial accents */
-.vertical-text {
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  letter-spacing: 0.35em;
+/* Subtle mouse specular glare inside cards */
+.specular-glare {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 255, 255, 0.08), transparent 40%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-/* Fine hair-lines */
-.hairline {
+.glass-card:hover .specular-glare {
+  opacity: 1;
+}
+
+/* Radiant glow utility classes */
+.text-glow-cyan {
+  text-shadow: 0 0 24px rgba(56, 189, 248, 0.6), 0 0 48px rgba(56, 189, 248, 0.25);
+}
+
+.text-glow-indigo {
+  text-shadow: 0 0 24px rgba(129, 140, 248, 0.6), 0 0 48px rgba(129, 140, 248, 0.25);
+}
+
+.text-glow-emerald {
+  text-shadow: 0 0 24px rgba(52, 211, 153, 0.6), 0 0 48px rgba(52, 211, 153, 0.25);
+}
+
+/* Soft hairline gradients */
+.hairline-cyan {
+  background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.5), transparent);
+}
+
+.hairline-white {
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
 }
 
-.hairline-vermilion {
-  background: linear-gradient(90deg, transparent, rgba(255, 59, 48, 0.5), transparent);
-}
-
-/* Text selections */
+/* Selection */
 ::selection {
-  background: rgba(255, 59, 48, 0.35);
+  background: rgba(56, 189, 248, 0.35);
   color: #fff;
 }
 

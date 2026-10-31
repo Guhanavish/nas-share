@@ -1,38 +1,47 @@
-import { Chapter01Threshold } from "../components/chapters/Chapter01Threshold";
-import { Chapter02Peers } from "../components/chapters/Chapter02Peers";
-import { Chapter03Altar } from "../components/chapters/Chapter03Altar";
-import { Chapter04Stream } from "../components/chapters/Chapter04Stream";
-import { Chapter05Vault } from "../components/chapters/Chapter05Vault";
-import { KageCanvas } from "../components/canvas/KageCanvas";
-import { PointerTrail } from "../components/canvas/PointerTrail";
+import { FluidConstellationCanvas } from "../components/canvas/FluidConstellationCanvas";
+import { PointerGlow } from "../components/canvas/PointerGlow";
+import { HeroSection } from "../components/sections/HeroSection";
+import { ConstellationSection } from "../components/sections/ConstellationSection";
+import { PairingLabSection } from "../components/sections/PairingLabSection";
+import { StreamBenchmarkSection } from "../components/sections/StreamBenchmarkSection";
+import { BinaryVaultSection } from "../components/sections/BinaryVaultSection";
+import { FaqAccordionSection } from "../components/sections/FaqAccordionSection";
 import { FAQ_SCHEMA, SOFTWARE_SCHEMA, useMeta, useSchema } from "../lib/meta";
 import type { ReleaseInfo } from "../lib/site";
 
 export function Home({ release }: { release: ReleaseInfo | null }) {
   useMeta({
-    title: "Nasend // 影 — Your Devices Are The Cloud",
+    title: "Nasend — Sovereign Device-as-NAS Mesh",
     description:
-      "Nasend turns your Phone, Android TV, and Windows PC into one sovereign, private device-mesh. 8-rune Crockford pairing, zero VPS servers, sub-millisecond Range streaming. Free forever.",
+      "Nasend unites your Phone, Android TV, and Windows PC into one sovereign, private device-mesh. 8-rune Crockford pairing, zero VPS servers, sub-millisecond Range streaming. Free forever.",
     path: "/",
   });
   useSchema("schema-software", SOFTWARE_SCHEMA);
   useSchema("schema-faq", FAQ_SCHEMA);
 
+  const handleNavigate = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
-    <div className="relative selection:bg-vermilion/30 selection:text-white">
-      {/* 3D WebGL Environmental Engine */}
-      <KageCanvas />
+    <div className="relative selection:bg-cyan-mesh/30 selection:text-white">
+      {/* 3D WebGL Fluid Constellation Canvas */}
+      <FluidConstellationCanvas />
 
-      {/* Interactive Firefly Pointer Trail on desktop */}
-      <PointerTrail />
+      {/* Ambient Mouse Specular Lighting Glow */}
+      <PointerGlow />
 
-      {/* The 5-Chapter Cinematic Walkthrough */}
+      {/* Main Narrative Flow */}
       <div className="relative z-10">
-        <Chapter01Threshold release={release} />
-        <Chapter02Peers />
-        <Chapter03Altar />
-        <Chapter04Stream />
-        <Chapter05Vault release={release} />
+        <HeroSection release={release} onNavigate={handleNavigate} />
+        <ConstellationSection />
+        <PairingLabSection />
+        <StreamBenchmarkSection />
+        <BinaryVaultSection release={release} />
+        <FaqAccordionSection />
       </div>
     </div>
   );
