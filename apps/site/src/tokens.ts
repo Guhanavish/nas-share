@@ -1,91 +1,43 @@
 /**
- * Nasend Design System & Motion Tokens
- * Centralized design tokens for colors, transport semantics, spacing, springs, and motion timings.
+ * Nasend Design Tokens
+ * Strictly minimal, neutral 4-step scale, single accent color, 8px spacing system.
  */
 
 export const TOKENS = {
   colors: {
-    // Dark-first surface & background hierarchy
+    // 4-step neutral scale
     bg: {
-      ink: '#060810',
-      canvas: '#080c16',
-      panel: '#0b101e',
-      panelElevated: '#111827',
-      card: '#0f172a',
-      cardGlass: 'rgba(15, 23, 42, 0.65)',
-      cardGlassBorder: 'rgba(255, 255, 255, 0.08)',
-      cardGlassHighlight: 'rgba(255, 255, 255, 0.14)',
+      base: "#0e1117",
+      subtle: "#161b22",
+      surface: "#21262d",
+      border: "#30363d",
     },
-    // Typography tokens
+    // Typography
     text: {
-      snow: '#f8fafc',
-      pureWhite: '#ffffff',
-      fog: '#94a3b8',
-      muted: '#64748b',
-      subtle: '#475569',
+      primary: "#f0f6fc",
+      muted: "#8b949e",
     },
-    // Core brand mesh gradients
-    brand: {
-      cyan: '#38bdf8',
-      indigo: '#818cf8',
-      emerald: '#34d399',
-      amber: '#fbbf24',
-    },
-    // Transport semantics
-    transport: {
-      lan: {
-        primary: '#14b8a6', // Teal 500
-        light: '#2dd4bf',   // Teal 400
-        glow: 'rgba(45, 212, 191, 0.35)',
-        badge: 'rgba(20, 184, 166, 0.15)',
-        border: 'rgba(45, 212, 191, 0.4)',
-        label: 'Local Direct (mDNS / Wi-Fi)',
-      },
-      wan: {
-        primary: '#9333ea', // Violet 600
-        light: '#c084fc',   // Violet 400
-        glow: 'rgba(192, 132, 252, 0.35)',
-        badge: 'rgba(147, 51, 234, 0.15)',
-        border: 'rgba(192, 132, 252, 0.4)',
-        label: 'Encrypted Relay (Cloudflare DO)',
-      },
-    },
-    // System status accents
-    status: {
-      online: '#10b981',
-      warning: '#f59e0b',
-      danger: '#ef4444',
-      info: '#38bdf8',
+    // Single accent color (for primary actions and links only)
+    accent: {
+      primary: "#38bdf8",
+      hover: "#7dd3fc",
     },
   },
   spacing: {
-    sectionPadding: 'py-24 sm:py-32',
-    containerMax: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8',
-    cardPadding: 'p-6 sm:p-8',
+    xs: "8px",
+    sm: "16px",
+    md: "24px",
+    lg: "32px",
+    xl: "48px",
+    xxl: "64px",
+    maxContent: "max-w-4xl mx-auto px-6",
+  },
+  typography: {
+    fontSans: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif',
+    fontMono: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace',
   },
   motion: {
-    // Standard durations (ms)
-    duration: {
-      instant: 0.15,
-      fast: 0.25,
-      normal: 0.4,
-      slow: 0.7,
-      scenic: 1.2,
-      aurora: 22,
-    },
-    // Spring physics presets for micro-interactions
-    spring: {
-      bouncy: { stiffness: 400, damping: 25 },
-      snappy: { stiffness: 300, damping: 30 },
-      gentle: { stiffness: 180, damping: 24 },
-      magnetic: { stiffness: 250, damping: 18 },
-    },
-    // Easing curves
-    ease: {
-      outQuint: [0.22, 1, 0.36, 1],
-      inOutCubic: [0.65, 0, 0.35, 1],
-    },
+    duration: 0.25,
+    ease: [0.16, 1, 0.3, 1],
   },
 } as const;
-
-export type ThemeTokens = typeof TOKENS;

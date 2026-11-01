@@ -1,19 +1,20 @@
-﻿# Nasend — llms.txt
-# Your devices are the cloud: pool phones, TVs and PCs into one private section.
+# Nasend — llms.txt
+# Files between your devices, without a server.
 
-## What it is
-- Free MIT app. Android APK (phone, tablet, Google TV) plus Windows EXE (installer and portable).
-- Every device runs an embedded file server and a file browser. Pair with a single-use 8-character code.
-- Pool view merges every trusted device into one list. Offline devices show greyed.
-- LAN first over direct HTTP. Anywhere else, a Cloudflare Worker relays signaling (and file chunks as fallback). Files are never stored on a server.
+## Overview
+- Free, open-source application under the MIT License. Universal Android APK (Phone, Tablet, Android TV) and Windows EXE (Standalone Portable and NSIS Setup).
+- Every device runs an embedded FileProto file server (port 8743) and client.
+- Devices pair using an 8-character Crockford Base32 single-use code with a 5-minute expiry.
+- LAN operations communicate over direct TCP sockets via local mDNS.
+- WAN operations communicate over WebRTC DataChannels using DTLS 1.3 encryption.
+- An ephemeral Cloudflare Worker (Durable Object) brokers WebRTC signaling only (SDP/ICE). File bytes never touch the server.
 
 ## Key pages
-- Home and downloads: https://nas-share-c941u6fq5-gt4.vercel.app/
-- Setup guides: https://nas-share-c941u6fq5-gt4.vercel.app/docs
-- Release history: https://nas-share-c941u6fq5-gt4.vercel.app/changelog
-- Terms: https://nas-share-c941u6fq5-gt4.vercel.app/terms
-- Privacy: https://nas-share-c941u6fq5-gt4.vercel.app/privacy
+- Home: https://nasend.vercel.app/
+- Security & Architecture: https://nasend.vercel.app/security
+- Documentation: https://nasend.vercel.app/docs
+- Release history: https://nasend.vercel.app/changelog
 
 ## Source
-- Repo: https://github.com/Guhanavish/nas-share
-- Latest release: https://github.com/Guhanavish/nas-share/releases/latest
+- Repository: https://github.com/Guhanavish/nas-share
+- Protocol specification: https://github.com/Guhanavish/nas-share/blob/master/packages/protocol/protocol.md

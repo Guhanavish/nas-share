@@ -1,162 +1,148 @@
 import { Link } from "react-router-dom";
-import { Smartphone, MonitorDown, Tv, RefreshCw, LifeBuoy, Terminal } from "lucide-react";
 import { Breadcrumbs } from "../components/Breadcrumbs";
 import { useMeta } from "../lib/meta";
+import { GITHUB_REPO } from "../lib/site";
 
 const guides = [
   {
-    icon: Smartphone,
     title: "1. Pair Phone ↔ Windows PC",
     steps: [
-      "Ensure both devices are on the same WiFi (or connected to internet for WebRTC WAN).",
-      "On Windows, open Shared Folders → Pair Device. A Crockford code like K7M2-Q9XD appears.",
-      "On your phone, tap Enter Code or scan the QR code → Connect & Pair.",
-      "Both devices verify the SHA-256 commit hash and pin Ed25519 identities forever.",
+      "Ensure both devices are on the same Wi-Fi network (or connected to the internet for WebRTC WAN relay).",
+      "On Windows, open Shared Folders → Pair Device. An 8-character Crockford code (e.g. K7M2-Q9XD) appears.",
+      "On your Android phone, tap Enter Code or scan the camera QR code → Connect.",
+      "Both devices verify the SHA-256 commit of the code and pin each other's Ed25519 public keys.",
     ],
   },
   {
-    icon: Tv,
     title: "2. Android TV Living Room Setup",
     steps: [
-      "Install the universal APK on your Google TV / Android TV via ADB or USB.",
-      "The app appears in your Leanback TV launcher with a custom 320x180 banner.",
-      "Select 'Show QR' on the TV screen; scan from your phone or type the 8-rune code.",
-      "Navigate remote folders using your TV remote D-Pad with custom halo focus states.",
+      "Install the universal APK on your Android TV or Google TV device via USB drive or ADB install.",
+      "Launch Nasend from your Leanback TV launcher.",
+      "Select 'Show QR' or generate a pairing code on the TV screen; pair from your phone or PC.",
+      "Navigate shared remote PC video libraries using your TV remote D-Pad.",
     ],
   },
   {
-    icon: MonitorDown,
     title: "3. Windows First Run & Firewall",
     steps: [
-      "Run 'NAS Share_0.1.0_x64-setup.exe' (or the standalone portable executable).",
-      "Allow the Windows Firewall prompt for port 8743 to permit local mDNS HTTP traffic.",
-      "Configure shared folders. The system tray icon monitors line-speed file streams.",
-      "If you exit the window, the server continues running silently in the system tray.",
+      "Launch nas-share-desktop.exe (portable standalone) or run Nasend-Setup.exe.",
+      "Allow the Windows Firewall prompt for port 8743 to permit local TCP and mDNS traffic.",
+      "Add directories to the Shared Folders table in the settings window.",
+      "Closing the window keeps the server running silently in the background system tray.",
     ],
   },
   {
-    icon: RefreshCw,
-    title: "4. Two-Way Sync & Media Streaming",
+    title: "4. Two-Way Sync & Chunked Streaming",
     steps: [
-      "Enable 'Automatic Sync' in the Sync screen on mobile to back up photos to your PC.",
+      "Enable 'Automatic Sync' in the Sync screen on mobile to automatically mirror camera photos to your PC.",
+      "Transfers stream in 16 KB to 64 KB HTTP/1.1 Range chunks.",
       "Interrupted transfers resume automatically from the exact byte offset.",
-      "File collisions use 'Keep-Both Strategy' (tagged with device name & timestamp).",
-      "4K video files seek instantly with sub-millisecond HTTP 206 Partial Content.",
-    ],
-  },
-  {
-    icon: LifeBuoy,
-    title: "5. Troubleshooting & Connectivity",
-    steps: [
-      "Device not discovered on LAN? Verify mDNS multicast is permitted on your WiFi router.",
-      "Away from home? The Cloudflare Worker WebSocket room negotiates STUN peer-to-peer WAN.",
-      "Code expired? Codes have a 5-minute single-use TTL; tap refresh for a new 8-rune code.",
-      "Too many attempts? The room rate-limiter temporarily blocks more than 5 joins per minute.",
+      "File collisions use a keep-both strategy appended with device identifier and timestamp.",
     ],
   },
 ];
 
 export function Docs() {
   useMeta({
-    title: "Architecture & Setup Docs // 影 Nasend",
-    description:
-      "Technical setup documentation for Nasend device-as-NAS ecosystem: Android TV Leanback, Windows Tauri v2, FileProto range streaming, and WebRTC signaling.",
+    title: "Documentation — Nasend",
+    description: "Setup guides, architecture, and protocol documentation for Nasend.",
     path: "/docs",
   });
 
   return (
-    <div className="mx-auto max-w-4xl px-5 pt-28 pb-24">
+    <div className="mx-auto max-w-4xl px-6 py-16 space-y-12">
       <Breadcrumbs trail={[{ label: "Docs" }]} />
 
-      <div className="mt-4">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-vermilion">
-          01 // 書 DOCUMENTATION
-        </p>
-        <h1 className="font-display mt-3 text-4xl font-extrabold text-snow sm:text-5xl">
-          Sovereign Mesh Setup
+      <div className="space-y-4">
+        <div className="font-mono text-[11px] uppercase tracking-wider text-[#8b949e]">
+          Documentation &amp; Guides
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#f0f6fc]">
+          Nasend Documentation
         </h1>
-        <p className="mt-3 text-base text-fog">
-          Complete guide to pairing your phone, Google TV, and PC without third-party accounts.
-        </p>
-        <p className="mt-2 text-sm text-fog">
-          Need the installer first?{" "}
-          <Link to="/#chapter-05" className="text-vermilion underline hover:text-snow">
-            Jump to Sovereign Vault Downloads
-          </Link>
-          .
+        <p className="text-base text-[#8b949e] leading-relaxed max-w-2xl">
+          Instructions for setting up, pairing, and configuring sovereign peer-to-peer storage across Windows, Android, and Android TV.
         </p>
       </div>
 
-      {/* Guide Cards */}
-      <div className="mt-10 space-y-6">
+      {/* Repository documentation references (Step 3) */}
+      <div className="p-4 rounded border border-[#30363d] bg-[#161b22] space-y-2 text-xs font-mono">
+        <span className="text-[#f0f6fc] font-medium block">
+          Repository Specifications &amp; Docs:
+        </span>
+        <ul className="space-y-1.5 text-[#8b949e]">
+          <li>
+            •{" "}
+            <a
+              href={`https://github.com/${GITHUB_REPO}/blob/master/packages/protocol/protocol.md`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#38bdf8] hover:underline"
+            >
+              packages/protocol/protocol.md
+            </a>{" "}
+            — Complete FileProto wire specification and message schema
+          </li>
+          <li>
+            •{" "}
+            <a
+              href={`https://github.com/${GITHUB_REPO}/blob/master/docs/test-checklist.md`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#38bdf8] hover:underline"
+            >
+              docs/test-checklist.md
+            </a>{" "}
+            — Verification checklist for mDNS, Range streaming, and pairing
+          </li>
+          <li>
+            •{" "}
+            <a
+              href={`https://github.com/${GITHUB_REPO}/tree/master/apps/windows`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#38bdf8] hover:underline"
+            >
+              apps/windows/
+            </a>{" "}
+            — Tauri v2 desktop host daemon written in Rust (Axum)
+          </li>
+          <li>
+            •{" "}
+            <a
+              href={`https://github.com/${GITHUB_REPO}/tree/master/apps/android`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#38bdf8] hover:underline"
+            >
+              apps/android/
+            </a>{" "}
+            — Jetpack Compose &amp; Ktor client for Android 8.0+ and TV
+          </li>
+        </ul>
+      </div>
+
+      {/* Step by step guides */}
+      <div className="space-y-8 border-t border-[#30363d] pt-8">
         {guides.map((g) => (
-          <div key={g.title} className="kage-card rounded-3xl p-6 sm:p-8">
-            <div className="flex items-center gap-3.5 border-b border-line pb-4">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-vermilion/15 text-vermilion">
-                <g.icon className="h-5 w-5" />
-              </span>
-              <h2 className="font-display text-lg font-bold text-snow">{g.title}</h2>
-            </div>
-            <ol className="mt-5 space-y-3">
-              {g.steps.map((s, n) => (
-                <li key={n} className="flex gap-3 text-sm leading-relaxed text-fog">
-                  <span className="font-mono font-bold text-amber">
-                    {String(n + 1).padStart(2, "0")}
-                  </span>
-                  <span>{s}</span>
-                </li>
+          <div key={g.title} className="space-y-3">
+            <h2 className="text-base font-medium text-[#f0f6fc]">{g.title}</h2>
+            <ol className="list-decimal pl-5 space-y-1.5 text-xs text-[#8b949e] leading-relaxed">
+              {g.steps.map((st, i) => (
+                <li key={i}>{st}</li>
               ))}
             </ol>
           </div>
         ))}
       </div>
 
-      {/* Technical Protocol Framing Specification */}
-      <div className="mt-12 kage-card rounded-3xl p-6 sm:p-8 border-cyan-mesh/20">
-        <div className="flex items-center gap-3 border-b border-line pb-4">
-          <Terminal className="h-5 w-5 text-cyan-mesh" />
-          <h3 className="font-display text-lg font-bold text-snow">
-            FileProto Wire Protocol Framing
-          </h3>
-        </div>
-        <div className="mt-4 overflow-x-auto font-mono text-xs text-fog">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-line text-snow">
-                <th className="py-2 pr-4">Command</th>
-                <th className="py-2 pr-4">Parameters</th>
-                <th className="py-2">Description</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line/40">
-              <tr>
-                <td className="py-2.5 pr-4 text-cyan-mesh font-bold">GET /api/list</td>
-                <td className="py-2.5 pr-4">{`{ path?: string }`}</td>
-                <td className="py-2.5">Lists files and folders with size & timestamps</td>
-              </tr>
-              <tr>
-                <td className="py-2.5 pr-4 text-cyan-mesh font-bold">GET /api/stat</td>
-                <td className="py-2.5 pr-4">{`{ path: string }`}</td>
-                <td className="py-2.5">Returns entry metadata (file vs dir)</td>
-              </tr>
-              <tr>
-                <td className="py-2.5 pr-4 text-cyan-mesh font-bold">GET /api/read</td>
-                <td className="py-2.5 pr-4">{`{ path, offset?, len? }`}</td>
-                <td className="py-2.5">Streams binary chunks with HTTP Range seek</td>
-              </tr>
-              <tr>
-                <td className="py-2.5 pr-4 text-cyan-mesh font-bold">POST /api/write</td>
-                <td className="py-2.5 pr-4">{`{ path, offset? } + binary body`}</td>
-                <td className="py-2.5">Appends chunk to file at exact offset</td>
-              </tr>
-              <tr>
-                <td className="py-2.5 pr-4 text-cyan-mesh font-bold">GET /api/thumb</td>
-                <td className="py-2.5 pr-4">{`{ path: string }`}</td>
-                <td className="py-2.5">Returns JPEG preview thumbnail</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      <div className="border-t border-[#30363d] pt-6 flex items-center justify-between text-xs font-mono">
+        <Link to="/" className="text-[#38bdf8] hover:underline">
+          ← Return to Home
+        </Link>
+        <Link to="/security" className="text-[#38bdf8] hover:underline">
+          Review security model →
+        </Link>
       </div>
     </div>
   );

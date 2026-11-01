@@ -1,11 +1,11 @@
-﻿{
+{
   "name": "Nasend",
   "short_name": "Nasend",
-  "description": "Your devices are the cloud. Pool phones, TVs and PCs into one private section.",
+  "description": "Files between your devices, without a server. Direct peer-to-peer file transfers and local streaming.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0b0e13",
-  "theme_color": "#0b0e13",
+  "background_color": "#0e1117",
+  "theme_color": "#0e1117",
   "icons": [
     { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ]

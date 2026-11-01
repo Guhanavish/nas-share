@@ -6,6 +6,7 @@ import { Home } from "./pages/Home";
 import { useLatestRelease } from "./lib/site";
 
 const Docs = lazy(() => import("./pages/Docs").then((m) => ({ default: m.Docs })));
+const Security = lazy(() => import("./pages/Security").then((m) => ({ default: m.Security })));
 const Changelog = lazy(() =>
   import("./pages/Changelog").then((m) => ({ default: m.Changelog }))
 );
@@ -26,7 +27,6 @@ function ScrollManager() {
 
   useEffect(() => {
     if (hash) {
-      // Delay slightly for elements to mount if route changed
       const timer = setTimeout(() => {
         const el = document.querySelector(hash);
         if (el) {
@@ -41,22 +41,13 @@ function ScrollManager() {
   return null;
 }
 
-/** Skeleton matching Kage subpage layout so lazy loads feel seamless */
+/** Minimal skeleton for lazy loading */
 function PageSkeleton() {
   return (
-    <div className="mx-auto max-w-4xl animate-pulse px-5 pt-32 pb-24" aria-label="Loading page">
-      <div className="h-4 w-36 rounded bg-card/60" />
-      <div className="mt-4 h-12 w-2/3 rounded-xl bg-card/60" />
-      <div className="mt-3 h-4 w-1/2 rounded bg-card/40" />
-      <div className="mt-10 space-y-4">
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="kage-card rounded-2xl p-6">
-            <div className="h-5 w-1/3 rounded bg-card/60" />
-            <div className="mt-3 h-4 w-full rounded bg-card/40" />
-            <div className="mt-2 h-4 w-4/5 rounded bg-card/30" />
-          </div>
-        ))}
-      </div>
+    <div className="mx-auto max-w-4xl px-6 pt-24 pb-20 space-y-4" aria-label="Loading page">
+      <div className="h-3 w-28 rounded bg-[#161b22]" />
+      <div className="h-8 w-2/3 rounded bg-[#161b22]" />
+      <div className="h-4 w-1/2 rounded bg-[#161b22]" />
     </div>
   );
 }
@@ -66,7 +57,7 @@ export default function App() {
 
   useEffect(() => {
     if (reduced) return;
-    const lenis = new Lenis({ lerp: 0.08, smoothWheel: true });
+    const lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
     let raf = 0;
     const loop = (t: number) => {
       lenis.raf(t);
@@ -83,10 +74,11 @@ export default function App() {
     <HashRouter>
       <ScrollManager />
       <Navbar />
-      <main className="min-h-screen">
+      <main className="min-h-screen bg-[#0e1117]">
         <Suspense fallback={<PageSkeleton />}>
           <Routes>
             <Route path="/" element={<Home release={release} />} />
+            <Route path="/security" element={<Security />} />
             <Route path="/docs" element={<Docs />} />
             <Route path="/changelog" element={<Changelog />} />
             <Route path="/terms" element={<Terms />} />

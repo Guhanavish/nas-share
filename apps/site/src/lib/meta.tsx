@@ -1,7 +1,7 @@
-﻿import { useEffect } from "react";
+import { useEffect } from "react";
 import { GITHUB_REPO } from "../lib/site";
 
-const SITE_URL = "https://nas-share-c941u6fq5-gt4.vercel.app";
+const SITE_URL = "https://nasend.vercel.app";
 
 /** Per-page title, description and canonical. Call at the top of each page. */
 export function useMeta(opts: { title: string; description: string; path: string }) {
