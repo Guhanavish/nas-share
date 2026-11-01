@@ -3,6 +3,7 @@
  */
 export function initFaviconAnimation() {
   if (typeof window === "undefined" || typeof document === "undefined") return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
   const favicon = document.querySelector<HTMLLinkElement>("link[rel~='icon']");
   if (!favicon) return;

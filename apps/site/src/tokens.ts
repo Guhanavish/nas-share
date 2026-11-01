@@ -66,6 +66,15 @@ export const TOKENS = {
       normal: 0.28,     // 200–350ms: card transitions, drawers
       page: 0.35,       // 250–450ms: page transitions
       reveal: 0.55,     // 450–650ms: section scroll reveals
+      intro: 0.7,       // Intro sequence duration (spec item 1)
+    },
+    distance: {
+      reveal: 12,
+      micro: 4,
+    },
+    stagger: {
+      tight: 0.04,
+      base: 0.08,
     },
     ease: {
       standard: [0.16, 1, 0.3, 1] as const,

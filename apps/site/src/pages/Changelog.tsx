@@ -9,7 +9,7 @@ import {
   WifiOff,
   RotateCcw,
 } from "lucide-react";
-import { Reveal } from "../components/ui";
+import { Reveal } from "../components/motion/Reveal";
 import { Breadcrumbs } from "../components/Breadcrumbs";
 import { useMeta } from "../lib/meta";
 import { GITHUB_REPO, releasesPage, type ReleaseInfo } from "../lib/site";

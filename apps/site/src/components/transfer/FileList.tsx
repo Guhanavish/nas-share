@@ -75,6 +75,7 @@ export function FileList({ files, onRemove, onClear }: FileListProps) {
           </span>
         </div>
         <button
+          type="button"
           onClick={onClear}
           className="text-[11px] text-[#929690] hover:text-[#F2F3F0] transition cursor-pointer underline underline-offset-2"
         >
@@ -82,19 +83,28 @@ export function FileList({ files, onRemove, onClear }: FileListProps) {
         </button>
       </div>
 
-      {/* File Cards List with Subtle Staggered Entrance */}
-      <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+      {/* Item 21: File rows with layout animation & stable keys */}
+      <ul className="space-y-2 max-h-64 overflow-y-auto pr-1 list-none p-0 m-0">
         <AnimatePresence initial={false}>
           {files.map((file, idx) => {
             const ext = file.name.includes(".") ? file.name.split(".").pop()?.toUpperCase() : "FILE";
+            // Stable key based on file metadata
+            const stableKey = `${file.name}-${file.size}-${file.lastModified || idx}`;
+            const cappedDelay = Math.min(idx, 10) * 0.04;
 
             return (
-              <motion.div
-                key={`${file.name}-${file.size}-${idx}`}
-                initial={{ opacity: 0, y: 6 }}
+              <motion.li
+                layout
+                key={stableKey}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: duration.fast, ease: ease.standard, delay: Math.min(idx * 0.03, 0.2) }}
+                exit={{ opacity: 0, x: -8 }}
+                transition={{
+                  duration: duration.fast,
+                  ease: ease.standard,
+                  delay: cappedDelay,
+                  layout: { duration: 0.2 },
+                }}
                 className="group flex items-center justify-between p-3 rounded-lg border border-[#343934] bg-[#1B1D1B] hover:border-[#414741] hover:bg-[#252825] transition-colors"
               >
                 <div className="flex items-center gap-3 min-w-0 pr-3">
@@ -124,11 +134,11 @@ export function FileList({ files, onRemove, onClear }: FileListProps) {
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
-              </motion.div>
+              </motion.li>
             );
           })}
         </AnimatePresence>
-      </div>
+      </ul>
     </div>
   );
 }

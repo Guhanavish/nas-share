@@ -13,13 +13,11 @@ export function Brand() {
   });
 
   const downloadSvg = (name: string, content: string) => {
-    const blob = new Blob([content], { type: "image/svg+xml" });
-    const url = URL.createObjectURL(blob);
+    const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(content)}`;
     const a = document.createElement("a");
-    a.href = url;
+    a.href = dataUrl;
     a.download = name;
     a.click();
-    URL.revokeObjectURL(url);
   };
 
   const markSvg = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

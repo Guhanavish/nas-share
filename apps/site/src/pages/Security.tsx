@@ -6,7 +6,7 @@ import { GITHUB_REPO } from "../lib/site";
 export function Security() {
   useMeta({
     title: "Security & Architecture — NASend",
-    description: "Technical security architecture, DTLS 1.3 encryption, and FileProto specification for NASend.",
+    description: "Technical security architecture, DTLS encryption, and FileProto specification for NASend.",
     path: "/security",
   });
 
@@ -40,7 +40,7 @@ export function Security() {
               <span className="text-[#F2F3F0]">LAN Transport:</span> HTTP/1.1 REST-style endpoints over direct TCP sockets on port <code className="code-inline">8743</code>.
             </li>
             <li>
-              <span className="text-[#F2F3F0]">WAN Transport:</span> WebRTC DataChannels using DTLS 1.3 frame streaming.
+              <span className="text-[#F2F3F0]">WAN Transport:</span> WebRTC DataChannels using DTLS frame streaming.
             </li>
           </ul>
           <p className="text-xs pt-1 font-sans">

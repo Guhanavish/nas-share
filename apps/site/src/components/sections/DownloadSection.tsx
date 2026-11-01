@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "motion/react";
-import { Copy, Check, Download, ShieldCheck, Terminal } from "lucide-react";
+import { Check, Download, ShieldCheck, Terminal, AlertCircle } from "lucide-react";
 import {
-  GITHUB_REPO,
   releasesPage,
   assetUrl,
   EXE_PORTABLE_ASSET,
@@ -10,7 +9,10 @@ import {
   APK_ASSET,
   type ReleaseInfo,
 } from "../../lib/site";
-import { TOKENS } from "../../tokens";
+import { SectionHeader } from "../motion/SectionHeader";
+import { Rule } from "../motion/Rule";
+import { useToast } from "../toast/ToastProvider";
+import { usePrefersReducedMotion } from "../../lib/usePrefersReducedMotion";
 
 interface DownloadSectionProps {
   release: ReleaseInfo | null;
@@ -23,30 +25,33 @@ interface BinaryItem {
   type: string;
   fileName: string;
   size: string;
-  hash: string;
+  hash: string | null; // Real SHA-256 if available, null otherwise
   url: string;
 }
 
+function getInitialOs(): "Windows" | "Android" | "Other" {
+  if (typeof navigator === "undefined") return "Other";
+  const nav = navigator as unknown as { userAgentData?: { platform?: string } };
+  const platform = nav.userAgentData?.platform || navigator.userAgent || "";
+  const lower = platform.toLowerCase();
+  if (/android/i.test(lower)) return "Android";
+  if (/win/i.test(lower)) return "Windows";
+  return "Other";
+}
+
 export function DownloadSection({ release }: DownloadSectionProps) {
-  const [detectedOs, setDetectedOs] = useState<"Windows" | "Android" | "Other">("Other");
-  const [downloadingId, setDownloadingId] = useState<string | null>(null);
-  const [completedId, setCompletedId] = useState<string | null>(null);
-  const [copiedHash, setCopiedHash] = useState<string | null>(null);
-  const [revealedHashes, setRevealedHashes] = useState<Record<string, string>>({});
-  const [isDecoding, setIsDecoding] = useState<Record<string, boolean>>({});
+  const [detectedOs] = useState<"Windows" | "Android" | "Other">(getInitialOs);
+  const [startedDownloads, setStartedDownloads] = useState<Record<string, boolean>>({});
+  const { toast } = useToast();
+  const reduced = usePrefersReducedMotion();
 
-  const { duration, ease } = TOKENS.motion;
-
-  // Detect visitor's platform
-  useEffect(() => {
-    if (typeof navigator === "undefined") return;
-    const ua = navigator.userAgent.toLowerCase();
-    if (/android/i.test(ua)) {
-      setDetectedOs("Android");
-    } else if (/win/i.test(ua)) {
-      setDetectedOs("Windows");
-    }
-  }, []);
+  // Item 33: Look for real checksum in release body, otherwise null
+  const extractRealHash = (_fileName: string): string | null => {
+    if (!release?.body) return null;
+    // If release body contains e.g. "sha256: <hex>" or "<hex>  <fileName>"
+    const match = new RegExp(`([a-fA-F0-9]{64})\\s+.*${_fileName}`, "i").exec(release.body);
+    return match ? match[1] : null;
+  };
 
   const binaries: BinaryItem[] = [
     {
@@ -56,7 +61,7 @@ export function DownloadSection({ release }: DownloadSectionProps) {
       type: "Standalone Portable Executable",
       fileName: "nas-share-desktop.exe",
       size: "17.5 MB",
-      hash: "8e7bf855e9c0b19d44e53ca8d9f1bc20a6e0c7a5f22e841f39f150cc3d3329aa",
+      hash: extractRealHash(EXE_PORTABLE_ASSET),
       url: assetUrl(release, EXE_PORTABLE_ASSET),
     },
     {
@@ -66,7 +71,7 @@ export function DownloadSection({ release }: DownloadSectionProps) {
       type: "NSIS System Installer",
       fileName: "Nasend-Setup.exe",
       size: "18.2 MB",
-      hash: "a4c281df691a34b22c7104b2b0ff8315ea0e74f4bceea987d6092d6e32d16450",
+      hash: extractRealHash(EXE_SETUP_ASSET),
       url: assetUrl(release, EXE_SETUP_ASSET),
     },
     {
@@ -76,202 +81,157 @@ export function DownloadSection({ release }: DownloadSectionProps) {
       type: "Universal Package (Android 8.0+)",
       fileName: "nasend-universal.apk",
       size: "12.4 MB",
-      hash: "3b9a1e0c78a4819d4b0051e50f38b29f7ac2108dceea841f39f150cc3d331298",
+      hash: extractRealHash(APK_ASSET),
       url: assetUrl(release, APK_ASSET),
     },
   ];
 
-  // Button fill on click
+  // Item 32: Download is NEVER delayed
   const handleDownloadClick = (bin: BinaryItem) => {
-    if (downloadingId) return;
-    setDownloadingId(bin.id);
+    // Initiate download immediately
+    window.open(bin.url, "_blank");
+
+    // Animate button fill (scaleX 0->1, 0.6s) and swap label to check + "Download started"
+    setStartedDownloads((prev) => ({ ...prev, [bin.id]: true }));
+    toast(`Download started: ${bin.fileName}`);
 
     setTimeout(() => {
-      setDownloadingId(null);
-      setCompletedId(bin.id);
-      window.open(bin.url, "_blank");
-
-      setTimeout(() => {
-        setCompletedId((curr) => (curr === bin.id ? null : curr));
-      }, 3000);
-    }, 550);
+      setStartedDownloads((prev) => ({ ...prev, [bin.id]: false }));
+    }, 3000);
   };
 
-  // Reveal SHA-256 with character typing decode effect
-  const handleDecodeHash = (bin: BinaryItem) => {
-    if (isDecoding[bin.id]) return;
-    if (revealedHashes[bin.id]) return;
-
-    setIsDecoding((prev) => ({ ...prev, [bin.id]: true }));
-    const hexChars = "0123456789abcdef";
-    const fullHash = bin.hash;
-    let currentStep = 0;
-    const totalSteps = fullHash.length;
-
-    const interval = setInterval(() => {
-      currentStep += 4;
-      if (currentStep >= totalSteps) {
-        clearInterval(interval);
-        setRevealedHashes((prev) => ({ ...prev, [bin.id]: fullHash }));
-        setIsDecoding((prev) => ({ ...prev, [bin.id]: false }));
-      } else {
-        const decodedPart = fullHash.slice(0, currentStep);
-        const scrambledPart = Array.from({ length: totalSteps - currentStep })
-          .map(() => hexChars[Math.floor(Math.random() * hexChars.length)])
-          .join("");
-        setRevealedHashes((prev) => ({ ...prev, [bin.id]: decodedPart + scrambledPart }));
-      }
-    }, 35);
-  };
-
-  const handleCopy = (hash: string) => {
-    navigator.clipboard.writeText(hash).catch(() => {});
-    setCopiedHash(hash);
-    setTimeout(() => setCopiedHash(null), 2000);
+  const handleCopyCmd = (cmd: string) => {
+    navigator.clipboard.writeText(cmd).catch(() => {});
+    toast(`Copied command: ${cmd}`);
   };
 
   return (
-    <section id="download" className="py-24 border-b border-[#343934]">
+    <section id="download" className="relative py-24 bg-[#0C0D0C] overflow-hidden">
       <div className="mx-auto max-w-5xl px-6 space-y-12">
-        <div className="space-y-3 text-left">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#343934] bg-[#1B1D1B] text-[11px] font-mono text-[#929690] uppercase tracking-wider">
-              Releases &amp; Binaries
+        {/* Item 19: Unified SectionHeader */}
+        <SectionHeader
+          eyebrow="Releases & Binaries"
+          title="Download native applications"
+          description="Standalone executables and application packages for host workstations and mobile devices. Zero required cloud telemetry."
+        />
+
+        {/* Release Status & Detected OS */}
+        <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl border border-[#343934] bg-[#1B1D1B] text-xs font-mono">
+          <div className="flex items-center gap-3">
+            <div className="w-2 h-2 rounded-full bg-[#A3B899] motion-safe:animate-pulse" />
+            <span className="text-[#F2F3F0] font-medium">
+              Latest Tag: {release?.tag || "v0.1.0"}
             </span>
+            <span className="text-[#929690] hidden sm:inline">•</span>
+            <span className="text-[#929690] hidden sm:inline">
+              Published: {release?.publishedAt ? new Date(release.publishedAt).toLocaleDateString() : "Active Build"}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3">
             {detectedOs !== "Other" && (
-              <span className="text-[10px] font-mono text-[#A3B899] bg-[#A3B899]/10 px-2.5 py-0.5 rounded-full border border-[#A3B899]/30">
+              <span className="text-[10px] font-mono text-[#A3B899] bg-[#A3B899]/10 px-2.5 py-0.5 rounded border border-[#A3B899]/30">
                 Detected: {detectedOs}
               </span>
             )}
+            <a
+              href={releasesPage}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#A3B899] hover:underline"
+            >
+              All GitHub Releases ↗
+            </a>
           </div>
-          <h2 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-[#F2F3F0]">
-            Download native applications
-          </h2>
-          <p className="text-sm sm:text-base text-[#929690] leading-relaxed max-w-xl font-sans">
-            Binaries are built reproducibly from source. Cryptographic SHA-256 hashes verify package integrity prior to launch.
-          </p>
         </div>
 
-        {/* Clean binary cards */}
-        <div className="space-y-4">
+        {/* Binary Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {binaries.map((bin) => {
             const isMatch = detectedOs === bin.os;
-            const isDownloading = downloadingId === bin.id;
-            const isCompleted = completedId === bin.id;
-            const currentDisplayedHash = revealedHashes[bin.id] || "••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••";
-            const isDecoded = !!revealedHashes[bin.id] && !isDecoding[bin.id];
+            const isStarted = startedDownloads[bin.id];
 
             return (
               <div
                 key={bin.id}
-                className={`p-5 sm:p-6 rounded-xl border transition-colors duration-150 bg-[#1B1D1B] space-y-4 ${
-                  isMatch ? "border-[#A3B899] shadow-[0_0_20px_rgba(163,184,153,0.06)]" : "border-[#343934]"
+                className={`p-6 rounded-xl border bg-[#1B1D1B] flex flex-col justify-between space-y-6 transition-colors ${
+                  isMatch ? "border-[#A3B899]" : "border-[#343934] hover:border-[#414741]"
                 }`}
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2.5">
-                      <span className="font-mono font-semibold text-sm text-[#F2F3F0]">
-                        {bin.fileName}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-semibold text-[#A3B899] bg-[#252825] px-2 py-0.5 rounded border border-[#343934]">
+                      {bin.os}
+                    </span>
+                    {isMatch && (
+                      <span className="font-mono text-[10px] text-[#A3B899] bg-[#A3B899]/10 px-2 py-0.5 rounded border border-[#A3B899]/30">
+                        Detected
                       </span>
-                      <span className="text-[10px] font-mono text-[#929690] bg-[#252825] px-2 py-0.5 rounded border border-[#343934]">
-                        {bin.size}
-                      </span>
-                      {isMatch && (
-                        <span className="text-[10px] font-mono text-[#A3B899] px-2 py-0.5 rounded bg-[#A3B899]/10 border border-[#A3B899]/30">
-                          Recommended
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-[#929690]">
-                      {bin.os} • {bin.type} ({bin.arch})
-                    </p>
+                    )}
                   </div>
 
-                  {/* Button with fill effect */}
-                  <div className="self-start sm:self-auto relative overflow-hidden rounded-xl">
-                    <button
-                      onClick={() => handleDownloadClick(bin)}
-                      disabled={isDownloading}
-                      className={`relative overflow-hidden px-5 py-2.5 rounded-xl text-xs font-mono font-medium transition cursor-pointer select-none active:translate-y-[1px] ${
-                        isMatch
-                          ? "bg-[#A3B899] text-[#0C0D0C] hover:bg-[#B5C8AC]"
-                          : "bg-[#252825] text-[#F2F3F0] border border-[#343934] hover:bg-[#343934]"
-                      }`}
-                    >
-                      {isDownloading && (
-                        <motion.div
-                          initial={{ scaleX: 0 }}
-                          animate={{ scaleX: 1 }}
-                          transition={{ duration: duration.reveal, ease: ease.standard }}
-                          className="absolute inset-0 bg-[#8DA283] origin-left"
-                          style={{ willChange: "transform" }}
-                        />
-                      )}
-
-                      <span className="relative z-10 flex items-center gap-2">
-                        {isCompleted ? (
-                          <>
-                            <Check className="w-3.5 h-3.5 text-[#0C0D0C]" />
-                            <span>Downloaded ({bin.size})</span>
-                          </>
-                        ) : isDownloading ? (
-                          <>
-                            <Download className="w-3.5 h-3.5 animate-pulse" />
-                            <span>Preparing binary...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Download className="w-3.5 h-3.5" />
-                            <span>Download {bin.fileName.endsWith(".apk") ? "APK" : "EXE"}</span>
-                          </>
-                        )}
-                      </span>
-                    </button>
+                  <div className="space-y-1">
+                    <h3 className="font-display text-base font-semibold text-[#F2F3F0]">
+                      {bin.fileName}
+                    </h3>
+                    <p className="text-xs text-[#929690]">{bin.type}</p>
+                    <p className="font-mono text-[11px] text-[#929690] pt-1">
+                      Arch: {bin.arch} • Size: ~{bin.size}
+                    </p>
                   </div>
                 </div>
 
-                {/* SHA-256 Checksum block */}
-                <div className="pt-3 border-t border-[#343934] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] font-mono text-[#929690]">
-                  <div className="flex items-center gap-2 truncate pr-2">
-                    <span className="text-[#929690] shrink-0 flex items-center gap-1.5">
-                      <ShieldCheck className="w-3.5 h-3.5 text-[#A3B899]" />
-                      SHA-256:
-                    </span>
-                    <span className="text-[#F2F3F0] truncate tracking-wider">
-                      {currentDisplayedHash}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-3 shrink-0">
-                    {!isDecoded && (
-                      <button
-                        onClick={() => handleDecodeHash(bin)}
-                        disabled={isDecoding[bin.id]}
-                        className="text-[10px] text-[#A3B899] hover:underline cursor-pointer flex items-center gap-1"
-                      >
-                        <Terminal className="w-3 h-3" />
-                        <span>{isDecoding[bin.id] ? "Decoding..." : "Verify Hash"}</span>
-                      </button>
+                <div className="space-y-4 pt-4 border-t border-[#343934]/60">
+                  {/* Item 32: Press-fill download button (immediate download, inner fill) */}
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadClick(bin)}
+                    className="relative w-full py-3 rounded-lg overflow-hidden border border-[#A3B899] bg-[#252825] text-xs font-mono font-medium text-[#F2F3F0] hover:text-[#0C0D0C] hover:bg-[#A3B899] transition-colors cursor-pointer select-none"
+                  >
+                    {/* Animated Fill Span */}
+                    {isStarted && !reduced && (
+                      <motion.span
+                        initial={{ scaleX: 0 }}
+                        animate={{ scaleX: 1 }}
+                        transition={{ duration: 0.6, ease: "linear" }}
+                        className="absolute inset-0 bg-[#A3B899] origin-left pointer-events-none"
+                      />
                     )}
 
-                    <button
-                      onClick={() => handleCopy(bin.hash)}
-                      className="p-1 hover:text-[#F2F3F0] transition cursor-pointer flex items-center gap-1 text-[10px]"
-                      title="Copy SHA-256 checksum"
-                    >
-                      {copiedHash === bin.hash ? (
+                    <span className="relative z-10 flex items-center justify-center gap-2">
+                      {isStarted ? (
                         <>
-                          <Check className="w-3.5 h-3.5 text-[#A3B899]" />
-                          <span className="text-[#A3B899]">Copied</span>
+                          <Check className="w-3.5 h-3.5 text-[#0C0D0C]" />
+                          <span className="text-[#0C0D0C]">Download started</span>
                         </>
                       ) : (
                         <>
-                          <Copy className="w-3.5 h-3.5" />
-                          <span>Copy</span>
+                          <Download className="w-3.5 h-3.5" />
+                          <span>Download Binary</span>
                         </>
                       )}
-                    </button>
+                    </span>
+                  </button>
+
+                  {/* Item 33: Honest Checksum Display */}
+                  <div className="space-y-1 font-mono text-[10px]">
+                    <div className="flex items-center justify-between text-[#929690]">
+                      <span className="flex items-center gap-1">
+                        <ShieldCheck className="w-3 h-3 text-[#A3B899]" />
+                        <span>SHA-256</span>
+                      </span>
+                    </div>
+
+                    {bin.hash ? (
+                      <div className="p-2 rounded bg-[#0C0D0C] border border-[#343934] text-[#A3B899] break-all">
+                        {bin.hash}
+                      </div>
+                    ) : (
+                      <div className="p-2 rounded bg-[#0C0D0C] border border-[#343934] text-[#929690] flex items-center gap-1.5">
+                        <AlertCircle className="w-3 h-3 text-[#929690] shrink-0" />
+                        <span>Checksum unavailable (release build)</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -279,29 +239,29 @@ export function DownloadSection({ release }: DownloadSectionProps) {
           })}
         </div>
 
-        {/* Footer info */}
-        <div className="pt-2 flex flex-wrap items-center justify-between gap-4 text-xs font-mono text-[#929690]">
-          <span>Open Source (MIT License) • Zero Telemetry</span>
-          <div className="flex items-center gap-4">
-            <a
-              href={releasesPage}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#A3B899] hover:underline"
+        {/* Quick CLI Installation Snippet */}
+        <div className="p-6 rounded-xl border border-[#343934] bg-[#1B1D1B] space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-mono text-[#F2F3F0]">
+              <Terminal className="w-4 h-4 text-[#A3B899]" />
+              <span>Direct Winget / Cargo Installation (Windows)</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleCopyCmd("cargo install nas-share-desktop")}
+              className="text-xs font-mono text-[#A3B899] hover:underline cursor-pointer"
             >
-              GitHub Release Changelog ↗
-            </a>
-            <a
-              href={`https://github.com/${GITHUB_REPO}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#A3B899] hover:underline"
-            >
-              Source code ↗
-            </a>
+              Copy
+            </button>
+          </div>
+
+          <div className="p-3.5 rounded-lg bg-[#0C0D0C] border border-[#343934] font-mono text-xs text-[#F2F3F0] flex items-center justify-between overflow-x-auto">
+            <code>cargo install nas-share-desktop</code>
+            <span className="text-[10px] text-[#929690] pl-4">Rust / Axum runtime</span>
           </div>
         </div>
       </div>
+      <Rule />
     </section>
   );
 }

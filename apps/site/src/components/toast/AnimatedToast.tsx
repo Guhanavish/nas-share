@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "motion/react";
-import { Check, Copy } from "lucide-react";
+import { Check, Info } from "lucide-react";
+import { TOKENS } from "../../tokens";
 
 interface ToastProps {
   message: string | null;
@@ -7,19 +8,30 @@ interface ToastProps {
 }
 
 export function AnimatedToast({ message, type = "copied" }: ToastProps) {
+  const { duration, ease } = TOKENS.motion;
+
   return (
-    <div className="fixed bottom-6 right-6 z-[9999] pointer-events-none">
-      <AnimatePresence>
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed bottom-6 inset-x-0 z-[9999] pointer-events-none flex justify-center px-4"
+    >
+      <AnimatePresence mode="wait">
         {message && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 450, damping: 28 }}
-            className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-ink/95 border border-cyan-mesh/40 text-snow text-xs font-mono shadow-[0_10px_30px_rgba(0,0,0,0.8),0_0_20px_rgba(56,189,248,0.25)] backdrop-blur-2xl"
+            key={message}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            transition={{ duration: duration.button, ease: ease.standard }}
+            className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-[#1B1D1B] border border-[#343934] text-[#F2F3F0] text-xs font-mono shadow-xl pointer-events-auto select-none"
           >
-            <div className="p-1 rounded-lg bg-emerald-mesh/20 text-emerald-mesh">
-              {type === "copied" ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+            <div className="p-1 rounded-md bg-[#252825] text-[#A3B899] border border-[#343934]">
+              {type === "copied" ? (
+                <Check className="w-3.5 h-3.5" />
+              ) : (
+                <Info className="w-3.5 h-3.5" />
+              )}
             </div>
             <span>{message}</span>
           </motion.div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Folder,
@@ -12,29 +12,36 @@ import {
   ArrowUpDown,
   Lock,
   Globe,
+  RotateCcw,
 } from "lucide-react";
+import { SectionHeader } from "../motion/SectionHeader";
+import { Rule } from "../motion/Rule";
 import { TOKENS } from "../../tokens";
+import { useActive } from "../../lib/useActive";
+import { usePrefersReducedMotion } from "../../lib/usePrefersReducedMotion";
 
 export function ProductShowcaseSection() {
   const [activeView, setActiveView] = useState<"pc" | "phone">("pc");
-  const [sentFile, setSentFile] = useState<string | null>(null);
+  const [isFileSent, setIsFileSent] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+  const isActive = useActive(sectionRef);
+  const reduced = usePrefersReducedMotion();
 
-  const { duration, ease } = TOKENS.motion;
+  const { ease } = TOKENS.motion;
 
-  const pcFiles = [
-    { name: "Camera_Roll_Archive", type: "dir", size: "4.2 GB", items: "128 items" },
-    { name: "Concert_4K_Remux.mkv", type: "file", size: "14.8 GB", items: "Stream ready" },
-    { name: "Project_Archive.tar", type: "file", size: "380 MB", items: "Single file" },
-  ];
+  // Trigger sample transfer once on view
+  const hasTriggeredRef = useRef(false);
+  useEffect(() => {
+    if (isActive && !hasTriggeredRef.current) {
+      hasTriggeredRef.current = true;
+      const t = setTimeout(() => setIsFileSent(true), 800);
+      return () => clearTimeout(t);
+    }
+  }, [isActive]);
 
-  const phoneFiles = [
-    { name: "DCIM_2026_11_01.mp4", type: "file", size: "840 MB", status: "Synced" },
-    { name: "Voice_Memos", type: "dir", size: "48 MB", status: "Synced" },
-  ];
-
-  const handleSend = (name: string) => {
-    setSentFile(name);
-    setTimeout(() => setSentFile(null), 2400);
+  const handleReplaySample = () => {
+    setIsFileSent(false);
+    setTimeout(() => setIsFileSent(true), 400);
   };
 
   const featureCards = [
@@ -50,7 +57,7 @@ export function ProductShowcaseSection() {
     },
     {
       title: "Cross-Device Transfers",
-      desc: "Move files smoothly between Windows, Android, Android TV, and modern web browsers.",
+      desc: "Move files directly between Windows, Android, Android TV, and modern web browsers.",
       icon: ArrowUpDown,
     },
     {
@@ -71,44 +78,64 @@ export function ProductShowcaseSection() {
   ];
 
   return (
-    <section id="product" className="py-24 border-b border-[#343934]">
+    <section id="product" ref={sectionRef} className="relative py-24 bg-[#0C0D0C] overflow-hidden">
       <div className="mx-auto max-w-5xl px-6 space-y-16">
-        <div className="space-y-3 text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#343934] bg-[#1B1D1B] text-[11px] font-mono text-[#929690] uppercase tracking-wider">
-            <span>Interface &amp; Capabilities</span>
-          </div>
-          <h2 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-[#F2F3F0]">
-            Engineered for direct utility
-          </h2>
-          <p className="text-sm sm:text-base text-[#929690] leading-relaxed max-w-xl font-sans">
-            Clean directory browsing on desktop and mobile with instant peer-to-peer delivery.
-          </p>
-        </div>
+        {/* Item 19: Unified SectionHeader */}
+        <SectionHeader
+          eyebrow="Interface & Capabilities"
+          title="Engineered for direct utility"
+          description="Clean directory browsing on desktop and mobile with instant peer-to-peer delivery."
+        />
 
-        {/* View Switcher: PC vs Phone */}
+        {/* View Switcher: PC vs Phone with Item 30 sliding tab pill */}
         <div className="space-y-4">
-          <div className="flex items-center gap-2 border-b border-[#343934] pb-4">
+          <div className="flex items-center justify-between border-b border-[#343934] pb-4">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveView("pc")}
+                className={`relative flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono transition cursor-pointer ${
+                  activeView === "pc" ? "text-[#F2F3F0] font-medium" : "text-[#929690] hover:text-[#F2F3F0]"
+                }`}
+              >
+                {activeView === "pc" && (
+                  <motion.div
+                    layoutId="showcase-tab"
+                    className="absolute inset-0 bg-[#252825] border border-[#414741] rounded-lg -z-0"
+                    transition={TOKENS.motion.ease.spring}
+                  />
+                )}
+                <Monitor className="w-3.5 h-3.5 text-[#A3B899] relative z-10" />
+                <span className="relative z-10">Windows Desktop Host</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveView("phone")}
+                className={`relative flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono transition cursor-pointer ${
+                  activeView === "phone" ? "text-[#F2F3F0] font-medium" : "text-[#929690] hover:text-[#F2F3F0]"
+                }`}
+              >
+                {activeView === "phone" && (
+                  <motion.div
+                    layoutId="showcase-tab"
+                    className="absolute inset-0 bg-[#252825] border border-[#414741] rounded-lg -z-0"
+                    transition={TOKENS.motion.ease.spring}
+                  />
+                )}
+                <Smartphone className="w-3.5 h-3.5 text-[#A3B899] relative z-10" />
+                <span className="relative z-10">Android Edge Client</span>
+              </button>
+            </div>
+
+            {/* Item 31: Replay Button */}
             <button
-              onClick={() => setActiveView("pc")}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono transition cursor-pointer ${
-                activeView === "pc"
-                  ? "bg-[#252825] text-[#F2F3F0] border border-[#414741]"
-                  : "text-[#929690] hover:text-[#F2F3F0]"
-              }`}
+              type="button"
+              onClick={handleReplaySample}
+              className="flex items-center gap-1.5 text-xs font-mono text-[#929690] hover:text-[#F2F3F0] cursor-pointer"
             >
-              <Monitor className="w-3.5 h-3.5 text-[#A3B899]" />
-              <span>Windows Desktop Host</span>
-            </button>
-            <button
-              onClick={() => setActiveView("phone")}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono transition cursor-pointer ${
-                activeView === "phone"
-                  ? "bg-[#252825] text-[#F2F3F0] border border-[#414741]"
-                  : "text-[#929690] hover:text-[#F2F3F0]"
-              }`}
-            >
-              <Smartphone className="w-3.5 h-3.5 text-[#A3B899]" />
-              <span>Android Edge Client</span>
+              <RotateCcw className="w-3.5 h-3.5 text-[#A3B899]" />
+              <span>Replay sample file move</span>
             </button>
           </div>
 
@@ -126,15 +153,16 @@ export function ProductShowcaseSection() {
               <span className="text-[11px] font-mono text-[#929690]">Port 8743</span>
             </div>
 
-            <div className="p-6 bg-[#0C0D0C] min-h-[300px]">
-              <AnimatePresence mode="wait">
+            <div className="p-6 bg-[#0C0D0C] min-h-[320px]">
+              {/* Item 30: popLayout AnimatePresence */}
+              <AnimatePresence mode="popLayout">
                 {activeView === "pc" ? (
                   <motion.div
                     key="pc-view"
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
-                    transition={{ duration: duration.normal, ease: ease.standard }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.28, ease: ease.standard }}
                     className="space-y-4"
                   >
                     <div className="flex items-center justify-between text-xs font-mono text-[#929690] border-b border-[#343934] pb-2">
@@ -143,85 +171,126 @@ export function ProductShowcaseSection() {
                     </div>
 
                     <div className="space-y-2">
-                      {pcFiles.map((file) => (
-                        <div
-                          key={file.name}
-                          className="flex items-center justify-between p-3 rounded-lg border border-[#343934] bg-[#1B1D1B] hover:border-[#414741] transition"
+                      {/* Item 31: Sample file that slides between panes */}
+                      {!isFileSent ? (
+                        <motion.div
+                          layoutId={reduced ? undefined : "sampleTransferredFile"}
+                          transition={{ duration: 0.5, ease: ease.standard }}
+                          className="flex items-center justify-between p-3 rounded-lg border border-[#A3B899]/60 bg-[#1B1D1B]"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="p-1.5 rounded bg-[#252825] text-[#A3B899]">
-                              {file.type === "dir" ? (
-                                <Folder className="w-4 h-4" />
-                              ) : (
-                                <File className="w-4 h-4" />
-                              )}
-                            </div>
+                            <File className="w-4 h-4 text-[#A3B899]" />
                             <div>
-                              <span className="text-xs font-mono font-medium text-[#F2F3F0]">
-                                {file.name}
-                              </span>
-                              <span className="ml-2 text-[10px] font-mono text-[#929690]">
-                                {file.items}
-                              </span>
+                              <p className="text-xs font-mono text-[#F2F3F0]">
+                                Sample_Archive_2026.zip{" "}
+                                <span className="text-[10px] text-[#A3B899] bg-[#A3B899]/10 px-1.5 py-0.5 rounded">
+                                  Sample file
+                                </span>
+                              </p>
+                              <span className="text-[10px] font-mono text-[#929690]">420 MB • Ready to send</span>
                             </div>
                           </div>
+                          <button
+                            type="button"
+                            onClick={() => setIsFileSent(true)}
+                            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#A3B899] text-[#0C0D0C] font-mono text-[11px] font-medium cursor-pointer"
+                          >
+                            <Send className="w-3 h-3" />
+                            <span>Send</span>
+                          </button>
+                        </motion.div>
+                      ) : (
+                        <div className="p-2.5 rounded-lg border border-[#343934]/60 bg-[#1B1D1B]/40 text-xs font-mono text-[#929690] flex items-center justify-between">
+                          <span>Sample_Archive_2026.zip</span>
+                          <span className="text-[#A3B899]">Sent to Android Edge Client</span>
+                        </div>
+                      )}
 
-                          <div className="flex items-center gap-3">
-                            <span className="text-xs font-mono text-[#929690]">{file.size}</span>
-                            <button
-                              onClick={() => handleSend(file.name)}
-                              className="px-2.5 py-1 rounded bg-[#252825] hover:bg-[#343934] text-[11px] font-mono text-[#F2F3F0] border border-[#343934] flex items-center gap-1.5 transition cursor-pointer"
-                            >
-                              {sentFile === file.name ? (
-                                <>
-                                  <Check className="w-3 h-3 text-[#A3B899]" />
-                                  <span className="text-[#A3B899]">Sent</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Send className="w-3 h-3" />
-                                  <span>Send</span>
-                                </>
-                              )}
-                            </button>
+                      <div className="flex items-center justify-between p-3 rounded-lg border border-[#343934] bg-[#1B1D1B]">
+                        <div className="flex items-center gap-3">
+                          <Folder className="w-4 h-4 text-[#929690]" />
+                          <div>
+                            <p className="text-xs font-mono text-[#F2F3F0]">Camera_Roll_Archive</p>
+                            <span className="text-[10px] font-mono text-[#929690]">4.2 GB • 128 items</span>
                           </div>
                         </div>
-                      ))}
+                        <span className="text-xs font-mono text-[#929690]">Shared</span>
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 rounded-lg border border-[#343934] bg-[#1B1D1B]">
+                        <div className="flex items-center gap-3">
+                          <File className="w-4 h-4 text-[#929690]" />
+                          <div>
+                            <p className="text-xs font-mono text-[#F2F3F0]">Concert_4K_Remux.mkv</p>
+                            <span className="text-[10px] font-mono text-[#929690]">14.8 GB • Stream ready</span>
+                          </div>
+                        </div>
+                        <span className="text-xs font-mono text-[#929690]">Shared</span>
+                      </div>
                     </div>
                   </motion.div>
                 ) : (
                   <motion.div
                     key="phone-view"
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
-                    transition={{ duration: duration.normal, ease: ease.standard }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.28, ease: ease.standard }}
                     className="space-y-4"
                   >
-                    <div className="p-4 rounded-lg bg-[#1B1D1B] border border-[#343934] flex items-center justify-between text-xs font-mono">
-                      <div className="flex items-center gap-2 text-[#929690]">
-                        <Smartphone className="w-4 h-4 text-[#A3B899]" />
-                        <span>Background Sync Status:</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[#A3B899]">
-                        <Check className="w-3.5 h-3.5" />
-                        <span>In sync (Port 8743)</span>
-                      </div>
+                    <div className="flex items-center justify-between text-xs font-mono text-[#929690] border-b border-[#343934] pb-2">
+                      <span>Remote Inbound Stream</span>
+                      <span>Status</span>
                     </div>
 
                     <div className="space-y-2">
-                      {phoneFiles.map((f) => (
-                        <div
-                          key={f.name}
-                          className="flex items-center justify-between p-3 rounded-lg border border-[#343934] bg-[#1B1D1B]"
+                      {/* Item 31: Received Sample File row */}
+                      {isFileSent && (
+                        <motion.div
+                          layoutId={reduced ? undefined : "sampleTransferredFile"}
+                          transition={{ duration: 0.5, ease: ease.standard }}
+                          className="flex items-center justify-between p-3 rounded-lg border border-[#A3B899] bg-[#252825]"
                         >
-                          <div className="flex items-center gap-2.5">
+                          <div className="flex items-center gap-3">
                             <File className="w-4 h-4 text-[#A3B899]" />
-                            <span className="text-xs font-mono text-[#F2F3F0]">{f.name}</span>
+                            <div>
+                              <p className="text-xs font-mono text-[#F2F3F0]">
+                                Sample_Archive_2026.zip{" "}
+                                <span className="text-[10px] text-[#A3B899] bg-[#A3B899]/10 px-1.5 py-0.5 rounded">
+                                  Received
+                                </span>
+                              </p>
+                              <span className="text-[10px] font-mono text-[#929690]">420 MB • Delivered directly</span>
+                            </div>
                           </div>
-                          <span className="text-xs font-mono text-[#929690]">{f.size}</span>
+                          <span className="flex items-center gap-1 text-xs font-mono text-[#A3B899]">
+                            <Check className="w-3.5 h-3.5" />
+                            <span>Verified</span>
+                          </span>
+                        </motion.div>
+                      )}
+
+                      <div className="flex items-center justify-between p-3 rounded-lg border border-[#343934] bg-[#1B1D1B]">
+                        <div className="flex items-center gap-3">
+                          <File className="w-4 h-4 text-[#929690]" />
+                          <div>
+                            <p className="text-xs font-mono text-[#F2F3F0]">DCIM_2026_11_01.mp4</p>
+                            <span className="text-[10px] font-mono text-[#929690]">840 MB</span>
+                          </div>
                         </div>
-                      ))}
+                        <span className="text-xs font-mono text-[#929690]">Synced</span>
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 rounded-lg border border-[#343934] bg-[#1B1D1B]">
+                        <div className="flex items-center gap-3">
+                          <Folder className="w-4 h-4 text-[#929690]" />
+                          <div>
+                            <p className="text-xs font-mono text-[#F2F3F0]">Voice_Memos</p>
+                            <span className="text-[10px] font-mono text-[#929690]">48 MB</span>
+                          </div>
+                        </div>
+                        <span className="text-xs font-mono text-[#929690]">Synced</span>
+                      </div>
                     </div>
                   </motion.div>
                 )}
@@ -230,21 +299,17 @@ export function ProductShowcaseSection() {
           </div>
         </div>
 
-        {/* Feature Cards Grid (Section 5.E) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 pt-4">
-          {featureCards.map((feat, idx) => {
+        {/* 6 Compact Feature Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {featureCards.map((feat) => {
             const Icon = feat.icon;
             return (
-              <motion.div
+              <div
                 key={feat.title}
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: duration.reveal, delay: idx * 0.05, ease: ease.standard }}
-                className="p-6 rounded-xl border border-[#343934] bg-[#1B1D1B] hover:border-[#414741] hover:bg-[#252825] transition-all space-y-3"
+                className="p-6 rounded-xl border border-[#343934] bg-[#1B1D1B] space-y-3"
               >
-                <div className="w-10 h-10 rounded-lg border border-[#343934] bg-[#0C0D0C] flex items-center justify-center text-[#A3B899]">
-                  <Icon className="w-5 h-5" />
+                <div className="w-8 h-8 rounded-lg border border-[#343934] bg-[#252825] flex items-center justify-center text-[#A3B899]">
+                  <Icon className="w-4 h-4" />
                 </div>
                 <h3 className="font-display text-base font-semibold text-[#F2F3F0] tracking-tight">
                   {feat.title}
@@ -252,11 +317,12 @@ export function ProductShowcaseSection() {
                 <p className="text-xs text-[#929690] leading-relaxed">
                   {feat.desc}
                 </p>
-              </motion.div>
+              </div>
             );
           })}
         </div>
       </div>
+      <Rule />
     </section>
   );
 }

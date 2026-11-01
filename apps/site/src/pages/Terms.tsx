@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { ShieldCheck, ArrowRight, FileText } from "lucide-react";
-import { Reveal } from "../components/ui";
+import { Reveal } from "../components/motion/Reveal";
 import { Breadcrumbs } from "../components/Breadcrumbs";
 import { useMeta } from "../lib/meta";
 

@@ -227,7 +227,7 @@ export function TransferApp({ initialMode = "send", className = "" }: TransferAp
     connectionState === "transferring";
 
   return (
-    <div className={`window-frame w-full max-w-2xl mx-auto shadow-2xl ${className}`}>
+    <div className={`window-frame w-full max-w-2xl mx-auto ${className}`}>
       {/* Window Header */}
       <div className="window-header">
         <div className="flex items-center gap-2">
@@ -240,7 +240,7 @@ export function TransferApp({ initialMode = "send", className = "" }: TransferAp
         </div>
         <div className="flex items-center gap-2 text-[11px] font-mono text-[#929690]">
           <Shield className="w-3.5 h-3.5 text-[#A3B899]" />
-          <span>DTLS 1.3 Pinning</span>
+          <span>DTLS &amp; Ed25519 Pinning</span>
         </div>
       </div>
 
@@ -255,7 +255,7 @@ export function TransferApp({ initialMode = "send", className = "" }: TransferAp
               }}
               className={`flex-1 py-2 rounded-md text-xs font-mono font-medium transition cursor-pointer flex items-center justify-center gap-2 ${
                 mode === "send"
-                  ? "bg-[#252825] text-[#F2F3F0] border border-[#414741] shadow-sm"
+                  ? "bg-[#252825] text-[#F2F3F0] border border-[#414741]"
                   : "text-[#929690] hover:text-[#F2F3F0]"
               }`}
             >
@@ -269,7 +269,7 @@ export function TransferApp({ initialMode = "send", className = "" }: TransferAp
               }}
               className={`flex-1 py-2 rounded-md text-xs font-mono font-medium transition cursor-pointer flex items-center justify-center gap-2 ${
                 mode === "receive"
-                  ? "bg-[#252825] text-[#F2F3F0] border border-[#414741] shadow-sm"
+                  ? "bg-[#252825] text-[#F2F3F0] border border-[#414741]"
                   : "text-[#929690] hover:text-[#F2F3F0]"
               }`}
             >
@@ -381,7 +381,7 @@ export function TransferApp({ initialMode = "send", className = "" }: TransferAp
               <button
                 type="button"
                 onClick={handleStartSend}
-                className="w-full py-3.5 rounded-xl bg-[#A3B899] text-[#0C0D0C] font-mono font-medium text-xs hover:bg-[#B5C8AC] active:translate-y-[1px] transition shadow-md cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-3.5 rounded-xl bg-[#A3B899] text-[#0C0D0C] font-mono font-medium text-xs hover:bg-[#B5C8AC] active:translate-y-px transition cursor-pointer flex items-center justify-center gap-2"
               >
                 <span>Connect &amp; Send Files</span>
                 <ArrowRight className="w-4 h-4" />
@@ -439,7 +439,7 @@ export function TransferApp({ initialMode = "send", className = "" }: TransferAp
               <button
                 type="button"
                 onClick={handleStartReceive}
-                className="w-full py-3.5 rounded-xl bg-[#A3B899] text-[#0C0D0C] font-mono font-medium text-xs hover:bg-[#B5C8AC] active:translate-y-[1px] transition shadow-md cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-3.5 rounded-xl bg-[#A3B899] text-[#0C0D0C] font-mono font-medium text-xs hover:bg-[#B5C8AC] active:translate-y-px transition cursor-pointer flex items-center justify-center gap-2"
               >
                 <span>Connect &amp; Receive Files</span>
                 <ArrowRight className="w-4 h-4" />

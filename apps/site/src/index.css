@@ -129,3 +129,50 @@ body {
   background-color: rgba(163, 184, 153, 0.25);
   color: #F2F3F0;
 }
+
+/* Item 38: Shared Focus, Link, and Button States */
+:focus-visible {
+  outline: 2px solid #A3B899;
+  outline-offset: 2px;
+  transition: outline-offset 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.link-underline {
+  position: relative;
+  text-decoration: none;
+}
+
+.link-underline::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: #A3B899;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.link-underline:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -12;
+  }
+}
+
+/* Item 39: Prefers Reduced Motion CSS Safety Net */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+

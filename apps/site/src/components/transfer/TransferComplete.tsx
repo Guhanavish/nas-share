@@ -1,7 +1,9 @@
 import { motion } from "motion/react";
-import { Check, Download, RefreshCw, FileCheck } from "lucide-react";
+import { Download, RefreshCw, FileCheck } from "lucide-react";
+import { CountUpNumber } from "../glass/CountUpNumber";
 import { formatBytes } from "../../lib/site";
 import { TOKENS } from "../../tokens";
+import { usePrefersReducedMotion } from "../../lib/usePrefersReducedMotion";
 
 interface TransferCompleteProps {
   files: { name: string; size: number; url?: string }[];
@@ -12,6 +14,8 @@ interface TransferCompleteProps {
 export function TransferComplete({ files, mode, onReset }: TransferCompleteProps) {
   const { duration, ease } = TOKENS.motion;
   const totalBytes = files.reduce((acc, f) => acc + f.size, 0);
+  const totalMB = totalBytes / (1024 * 1024);
+  const reduced = usePrefersReducedMotion();
 
   return (
     <motion.div
@@ -20,25 +24,73 @@ export function TransferComplete({ files, mode, onReset }: TransferCompleteProps
       transition={{ duration: duration.normal, ease: ease.standard }}
       className="w-full p-8 rounded-xl border border-[#343934] bg-[#1B1D1B] text-center space-y-6"
     >
-      {/* Animated Checkmark in Sage Accent */}
+      {/* Item 24: Circle draws (0.4s), then check draws (0.25s) in SVG */}
       <div className="flex justify-center">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 350, damping: 22, delay: 0.1 }}
-          className="w-16 h-16 rounded-full bg-[#A3B899]/10 border-2 border-[#A3B899] flex items-center justify-center text-[#A3B899]"
-        >
-          <Check className="w-8 h-8 stroke-[2.5]" />
-        </motion.div>
+        <div className="w-16 h-16 relative flex items-center justify-center">
+          <svg viewBox="0 0 64 64" className="w-16 h-16" fill="none">
+            {/* Background circle track */}
+            <circle
+              cx="32"
+              cy="32"
+              r="28"
+              stroke="#252825"
+              strokeWidth="2"
+            />
+            {/* Animated circle stroke */}
+            <motion.circle
+              cx="32"
+              cy="32"
+              r="28"
+              stroke="#A3B899"
+              strokeWidth="2"
+              initial={reduced ? false : { pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 0.4, ease: ease.standard }}
+            />
+            {/* Animated check path */}
+            <motion.path
+              d="M 21 33 L 29 41 L 44 23"
+              stroke="#A3B899"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              initial={reduced ? false : { pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 0.25, delay: reduced ? 0 : 0.4, ease: ease.standard }}
+            />
+          </svg>
+        </div>
       </div>
 
       <div className="space-y-2">
         <h3 className="font-display text-2xl font-semibold tracking-tight text-[#F2F3F0]">
           {mode === "send" ? "Files Transferred Successfully" : "Files Received Successfully"}
         </h3>
-        <p className="text-xs font-mono text-[#929690]">
-          {files.length} {files.length === 1 ? "item" : "items"} ({formatBytes(totalBytes)}) moved directly with verified hash integrity.
-        </p>
+        {/* Item 24: CountUpNumber for file count and size */}
+        <div className="text-xs font-mono text-[#929690] flex items-center justify-center gap-1.5 flex-wrap">
+          <CountUpNumber
+            end={files.length}
+            duration={600}
+            className="text-[#F2F3F0] font-semibold"
+          />
+          <span>{files.length === 1 ? "item" : "items"}</span>
+          <span>•</span>
+          <span>
+            {totalMB >= 1 ? (
+              <span className="flex items-center gap-1">
+                <CountUpNumber
+                  end={totalMB}
+                  decimals={1}
+                  duration={600}
+                  className="text-[#F2F3F0] font-semibold"
+                />
+                <span>MB transferred directly</span>
+              </span>
+            ) : (
+              <span>{formatBytes(totalBytes)} transferred directly</span>
+            )}
+          </span>
+        </div>
       </div>
 
       {/* File summary list */}
@@ -72,8 +124,9 @@ export function TransferComplete({ files, mode, onReset }: TransferCompleteProps
       {/* Actions */}
       <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
         <button
+          type="button"
           onClick={onReset}
-          className="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-[#A3B899] text-[#0C0D0C] font-mono font-medium text-xs hover:bg-[#B5C8AC] active:translate-y-[1px] transition cursor-pointer flex items-center justify-center gap-2"
+          className="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-[#A3B899] text-[#0C0D0C] font-mono font-medium text-xs hover:bg-[#B5C8AC] active:translate-y-px transition cursor-pointer flex items-center justify-center gap-2"
         >
           <RefreshCw className="w-3.5 h-3.5" />
           <span>Start New Transfer</span>

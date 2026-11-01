@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Plus } from "lucide-react";
+import { SectionHeader } from "../motion/SectionHeader";
+import { Rule } from "../motion/Rule";
 import { TOKENS } from "../../tokens";
 
 interface TooltipTermProps {
@@ -18,8 +20,13 @@ function TechnicalTerm({ term, definition }: TooltipTermProps) {
       className="relative inline-block"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onFocus={() => setHovered(true)}
+      onBlur={() => setHovered(false)}
+      tabIndex={0}
+      role="button"
+      aria-label={`Definition of ${term}`}
     >
-      <span className="cursor-help border-b border-dotted border-[#A3B899] text-[#F2F3F0] font-medium">
+      <span className="cursor-help border-b border-dotted border-[#A3B899] text-[#F2F3F0] font-medium outline-none">
         {term}
       </span>
       <AnimatePresence>
@@ -29,7 +36,7 @@ function TechnicalTerm({ term, definition }: TooltipTermProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 4 }}
             transition={{ duration: duration.fast, ease: ease.standard }}
-            className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 rounded-lg bg-[#252825] border border-[#343934] text-[11px] font-sans text-[#F2F3F0] leading-normal shadow-xl z-30 pointer-events-none"
+            className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 rounded-lg bg-[#252825] border border-[#343934] text-[11px] font-sans text-[#F2F3F0] leading-normal z-30 pointer-events-none"
           >
             <div className="font-mono text-[10px] text-[#A3B899] uppercase tracking-wider mb-1">
               {term} Protocol
@@ -68,7 +75,7 @@ export function FaqAccordionSection() {
             term="mDNS"
             definition="Multicast DNS enables zero-configuration host discovery across local subnets without querying external DNS servers."
           />
-          . Transfers and media streaming run over direct TCP sockets on port 8743 at full Gigabit line-rate speeds
+          . Transfers and media streaming run over direct TCP sockets on port 8743
           without requiring external internet connectivity.
         </span>
       ),
@@ -88,9 +95,9 @@ export function FaqAccordionSection() {
       q: "Can I stream 4K video straight to my TV without transcoding latency?",
       answerNode: (
         <span>
-          Yes. NASend implements the standard HTTP/1.1 Range specification (RFC 7233). When media players
-          (such as ExoPlayer or VLC) request frames, the host sends exact 16–64 KB chunk segments directly
-          into playback memory. Seeking anywhere in a 30 GB 4K file initiates playback in under 2 milliseconds.
+          Yes. NASend implements the standard HTTP/1.1 Range specification. When media players
+          (such as ExoPlayer or VLC) request frames, the host sends exact chunk segments directly
+          into playback memory. Seeking anywhere in a 4K file initiates playback directly from peer hardware.
         </span>
       ),
     },
@@ -106,7 +113,7 @@ export function FaqAccordionSection() {
           and establishes a{" "}
           <TechnicalTerm
             term="DTLS"
-            definition="Datagram Transport Layer Security (v1.3) encrypts WebRTC DataChannels end-to-end with cryptographic key pinning."
+            definition="Datagram Transport Layer Security encrypts WebRTC DataChannels end-to-end with cryptographic key pinning."
           />{" "}
           encrypted tunnel. The signaling server coordinates connection metadata but cannot inspect or decrypt
           transferred file bytes.
@@ -120,24 +127,20 @@ export function FaqAccordionSection() {
   };
 
   return (
-    <section id="faq" className="py-24 border-b border-[#343934]">
+    <section id="faq" className="relative py-24 bg-[#0C0D0C] overflow-hidden">
       <div className="mx-auto max-w-5xl px-6 space-y-12">
-        <div className="space-y-3 text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#343934] bg-[#1B1D1B] text-[11px] font-mono text-[#929690] uppercase tracking-wider">
-            <span>Specifications &amp; Questions</span>
-          </div>
-          <h2 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-[#F2F3F0]">
-            Frequently asked questions
-          </h2>
-          <p className="text-sm sm:text-base text-[#929690] leading-relaxed max-w-xl font-sans">
-            Technical architecture, local-first protocols, and cryptographic transport guarantees.
-          </p>
-        </div>
+        {/* Item 19: Unified SectionHeader */}
+        <SectionHeader
+          eyebrow="Specifications & Questions"
+          title="Frequently asked questions"
+          description="Technical architecture, local-first protocols, and cryptographic transport guarantees."
+        />
 
-        {/* Accordions */}
+        {/* Accordions (Item 34: smooth height animation, 45deg plus rotation, keyboard accessible) */}
         <div className="space-y-3">
           {faqs.map((faq, idx) => {
             const isOpen = openIdx === idx;
+            const contentId = `faq-answer-${idx}`;
 
             return (
               <div
@@ -147,8 +150,9 @@ export function FaqAccordionSection() {
                 <button
                   type="button"
                   onClick={() => handleToggle(idx)}
-                  className="w-full text-left p-5 flex items-center justify-between gap-4 cursor-pointer select-none"
+                  className="w-full text-left p-5 flex items-center justify-between gap-4 cursor-pointer select-none outline-none focus-visible:ring-2 focus-visible:ring-[#A3B899] rounded-xl"
                   aria-expanded={isOpen}
+                  aria-controls={contentId}
                 >
                   <span className="font-display text-sm sm:text-base font-medium text-[#F2F3F0]">
                     {faq.q}
@@ -168,10 +172,11 @@ export function FaqAccordionSection() {
                 <AnimatePresence initial={false}>
                   {isOpen && (
                     <motion.div
+                      id={contentId}
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: duration.normal, ease: ease.standard }}
+                      transition={{ duration: 0.28, ease: ease.standard }}
                       className="overflow-hidden"
                     >
                       <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-[#929690] leading-relaxed border-t border-[#343934]/60 font-sans">
@@ -185,6 +190,7 @@ export function FaqAccordionSection() {
           })}
         </div>
       </div>
+      <Rule />
     </section>
   );
 }
