@@ -1,15 +1,19 @@
+import { motion } from "motion/react";
+
 interface NasendLogoProps {
   size?: number;
   className?: string;
   withText?: boolean;
   textClassName?: string;
   glow?: boolean;
+  animateOnMount?: boolean;
 }
 
 /**
  * Nasend Sovereign Mesh Monogram
- * A unique, bespoke vector mark symbolizing the unbreakable trinity of
+ * A bespoke vector mark symbolizing the unbreakable trinity of
  * Phone, PC, and TV forming a sovereign infinity storage mesh.
+ * Features first-load animated path drawing connecting peer nodes.
  */
 export function NasendLogo({
   size = 36,
@@ -17,6 +21,7 @@ export function NasendLogo({
   withText = false,
   textClassName = "",
   glow = true,
+  animateOnMount = true,
 }: NasendLogoProps) {
   return (
     <div className={`inline-flex items-center gap-3 select-none ${className}`}>
@@ -39,14 +44,12 @@ export function NasendLogo({
           className="relative z-10 w-full h-full drop-shadow-[0_2px_12px_rgba(56,189,248,0.4)] transition-transform duration-300 group-hover/logo:scale-105"
         >
           <defs>
-            {/* Primary gradient: Cyan Mesh to Electric Indigo */}
             <linearGradient id="nasendGrad1" x1="10" y1="10" x2="90" y2="90" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stopColor="#38bdf8" />
               <stop offset="50%" stopColor="#818cf8" />
               <stop offset="100%" stopColor="#34d399" />
             </linearGradient>
 
-            {/* Inner secondary gradient */}
             <linearGradient id="nasendGrad2" x1="90" y1="20" x2="20" y2="90" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stopColor="#a855f7" />
               <stop offset="50%" stopColor="#38bdf8" />
@@ -60,32 +63,39 @@ export function NasendLogo({
           </defs>
 
           {/* Background subtle hexagon shield */}
-          <polygon
+          <motion.polygon
             points="50,6 88,28 88,72 50,94 12,72 12,28"
             fill="rgba(15, 23, 42, 0.75)"
             stroke="rgba(255, 255, 255, 0.12)"
             strokeWidth="1.5"
+            initial={animateOnMount ? { opacity: 0, scale: 0.8 } : undefined}
+            animate={animateOnMount ? { opacity: 1, scale: 1 } : undefined}
+            transition={{ duration: 0.5 }}
           />
 
-          {/* Trinity Interlocking Mesh Path: Three loops converging at the center core */}
-          {/* Loop 1: Mobile Node (Top) */}
-          <path
+          {/* Loop 1: Mobile Node (Top) with stroke-dash draw animation (Item 30) */}
+          <motion.path
             d="M 50 20 C 62 20 72 30 68 44 C 64 56 50 54 50 64 C 50 54 36 56 32 44 C 28 30 38 20 50 20 Z"
             stroke="url(#nasendGrad1)"
             strokeWidth="3.5"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="transition-all duration-700"
+            initial={animateOnMount ? { pathLength: 0 } : undefined}
+            animate={animateOnMount ? { pathLength: 1 } : undefined}
+            transition={{ duration: 1.2, ease: "easeInOut" }}
           />
 
           {/* Loop 2: Workstation PC Node (Bottom Right) */}
-          <path
+          <motion.path
             d="M 68 76 C 78 68 82 54 70 44 C 58 36 54 48 46 52 C 54 48 50 34 38 42 C 26 50 32 66 44 74 C 52 80 60 82 68 76 Z"
             stroke="url(#nasendGrad2)"
             strokeWidth="3.2"
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeOpacity="0.85"
+            initial={animateOnMount ? { pathLength: 0 } : undefined}
+            animate={animateOnMount ? { pathLength: 1 } : undefined}
+            transition={{ duration: 1.2, delay: 0.3, ease: "easeInOut" }}
           />
 
           {/* Central Cryptographic Heart Token */}

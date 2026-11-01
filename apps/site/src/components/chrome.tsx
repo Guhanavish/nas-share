@@ -4,6 +4,7 @@ import { Menu, X, ExternalLink, BookOpen } from "lucide-react";
 import { NasendLogo } from "./brand/NasendLogo";
 import { GITHUB_REPO } from "../lib/site";
 import { ZenAudioToggle, zenAudioEngine } from "./audio/ZenAudio";
+import { ThemePresetToggle } from "./theme/ThemePresetToggle";
 
 function GitHubIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
@@ -45,9 +46,10 @@ export function Navbar() {
   useEffect(() => setOpen(false), [loc.pathname]);
 
   const navLinks = [
-    { id: "constellation", label: "Constellation" },
-    { id: "pairing", label: "Pairing Lab" },
-    { id: "streaming", label: "Streaming" },
+    { id: "how-it-works", label: "How It Works" },
+    { id: "features", label: "Features" },
+    { id: "pairing", label: "Pairing" },
+    { id: "security", label: "Security" },
     { id: "vault", label: "Downloads" },
     { id: "faq", label: "FAQ" },
   ];
@@ -97,8 +99,9 @@ export function Navbar() {
           </nav>
         )}
 
-        {/* Right Actions: Audio, Docs, GitHub */}
+        {/* Right Actions: Audio, Theme, Docs, GitHub */}
         <div className="hidden sm:flex items-center gap-3">
+          <ThemePresetToggle />
           <ZenAudioToggle />
 
           <Link
