@@ -16,7 +16,6 @@ export function Navbar() {
     setOpen((prev) => (prev ? false : prev));
   }, [loc.pathname]);
 
-  // Sync theme with document element
   useEffect(() => {
     const saved = localStorage.getItem("nasend-theme") as "dark" | "light" | null;
     if (saved) {
@@ -44,6 +43,7 @@ export function Navbar() {
   };
 
   const navLinks = [
+    { label: "Transfer", href: "transfer", isAnchor: true },
     { label: "How it works", href: "how-it-works", isAnchor: true },
     { label: "Security", href: "/security", isAnchor: false },
     { label: "Docs", href: "/docs", isAnchor: false },
@@ -51,34 +51,33 @@ export function Navbar() {
   ];
 
   return (
-    // Item 18: Fade in nav on a short stagger
     <motion.header
       initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: duration.normal, ease: ease.standard, delay: 0.15 }}
-      className="sticky top-0 z-50 w-full border-b border-[#30363d] bg-[#0e1117]/95 backdrop-blur-none"
+      transition={{ duration: duration.normal, ease: ease.standard, delay: 0.1 }}
+      className="sticky top-0 z-50 w-full border-b border-[#343934] bg-[#0C0D0C]/95 backdrop-blur-sm"
     >
-      <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-6">
+      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-6">
         <div className="flex items-center gap-4">
           <Link to="/" className="flex items-center gap-2">
-            <NasendLogo size={18} />
+            <NasendLogo size={22} />
           </Link>
 
-          {/* Item 46: Connection status dot pulsing slowly (1.5s period) */}
+          {/* Signaling Connection Status Dot (Item 46: 1.5s slow pulse) */}
           <div
-            className="hidden sm:flex items-center gap-2 px-2 py-0.5 rounded border border-[#30363d] bg-[#161b22] text-[10px] font-mono text-[#8b949e]"
+            className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full border border-[#343934] bg-[#1B1D1B] text-[10px] font-mono text-[#929690]"
             title="Cloudflare Worker Signaling Server: Operational"
           >
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#38bdf8] opacity-75 duration-1000" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#38bdf8]" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#A3B899] opacity-75 duration-1000" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#A3B899]" />
             </span>
-            <span>Signaling • Edge Active</span>
+            <span>Signaling • Edge Operational</span>
           </div>
         </div>
 
-        {/* Desktop Navigation with Item 42 Shared Layout Indicator */}
-        <nav className="hidden md:flex items-center gap-5 text-xs font-mono">
+        {/* Desktop Navigation with Sage Accent Shared Layout Indicator */}
+        <nav className="hidden md:flex items-center gap-6 text-xs font-mono">
           {navLinks.map((link) => {
             const isActive = !link.isAnchor && loc.pathname === link.href;
 
@@ -87,7 +86,7 @@ export function Navbar() {
                 <button
                   key={link.label}
                   onClick={() => scrollTo(link.href)}
-                  className="relative py-1 text-[#8b949e] hover:text-[#f0f6fc] transition cursor-pointer"
+                  className="relative py-1 text-[#929690] hover:text-[#F2F3F0] transition cursor-pointer"
                 >
                   {link.label}
                 </button>
@@ -95,7 +94,7 @@ export function Navbar() {
                 <Link
                   key={link.label}
                   to={`/#${link.href}`}
-                  className="relative py-1 text-[#8b949e] hover:text-[#f0f6fc] transition"
+                  className="relative py-1 text-[#929690] hover:text-[#F2F3F0] transition"
                 >
                   {link.label}
                 </Link>
@@ -107,14 +106,14 @@ export function Navbar() {
                 key={link.label}
                 to={link.href}
                 className={`relative py-1 transition ${
-                  isActive ? "text-[#f0f6fc] font-semibold" : "text-[#8b949e] hover:text-[#f0f6fc]"
+                  isActive ? "text-[#F2F3F0] font-semibold" : "text-[#929690] hover:text-[#F2F3F0]"
                 }`}
               >
                 {link.label}
                 {isActive && (
                   <motion.div
                     layoutId="navIndicator"
-                    className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-[#38bdf8]"
+                    className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#A3B899]"
                     transition={{ duration: duration.fast, ease: ease.standard }}
                   />
                 )}
@@ -126,44 +125,44 @@ export function Navbar() {
             href={`https://github.com/${GITHUB_REPO}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="py-1 text-[#8b949e] hover:text-[#f0f6fc] transition"
+            className="py-1 text-[#929690] hover:text-[#F2F3F0] transition"
           >
             GitHub
           </a>
 
-          {/* Item 45: Theme toggle button */}
+          {/* Theme toggle button */}
           <button
             onClick={toggleTheme}
-            className="p-1.5 rounded text-[#8b949e] hover:text-[#f0f6fc] border border-[#30363d] hover:bg-[#21262d] transition cursor-pointer"
+            className="p-1.5 rounded-lg text-[#929690] hover:text-[#F2F3F0] border border-[#343934] hover:bg-[#252825] transition cursor-pointer"
             aria-label="Toggle color theme"
             title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
           >
             {theme === "dark" ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
           </button>
 
-          {/* Download CTA Button (Item 41 press feedback) */}
+          {/* Send / Receive Primary CTA */}
           {loc.pathname === "/" ? (
             <button
-              onClick={() => scrollTo("download")}
-              className="px-3.5 py-1.5 rounded text-xs font-mono font-medium text-[#0e1117] bg-[#38bdf8] hover:bg-[#7dd3fc] active:translate-y-[1px] transition cursor-pointer"
+              onClick={() => scrollTo("transfer")}
+              className="px-4 py-2 rounded-xl text-xs font-mono font-medium text-[#0C0D0C] bg-[#A3B899] hover:bg-[#B5C8AC] active:translate-y-[1px] transition cursor-pointer shadow-sm"
             >
-              Download
+              Transfer Files
             </button>
           ) : (
             <Link
-              to="/#download"
-              className="px-3.5 py-1.5 rounded text-xs font-mono font-medium text-[#0e1117] bg-[#38bdf8] hover:bg-[#7dd3fc] active:translate-y-[1px] transition"
+              to="/#transfer"
+              className="px-4 py-2 rounded-xl text-xs font-mono font-medium text-[#0C0D0C] bg-[#A3B899] hover:bg-[#B5C8AC] active:translate-y-[1px] transition shadow-sm"
             >
-              Download
+              Transfer Files
             </Link>
           )}
         </nav>
 
-        {/* Mobile menu and theme buttons */}
+        {/* Mobile menu trigger */}
         <div className="flex md:hidden items-center gap-2">
           <button
             onClick={toggleTheme}
-            className="p-1.5 rounded text-[#8b949e] hover:text-[#f0f6fc] border border-[#30363d]"
+            className="p-2 rounded-lg text-[#929690] hover:text-[#F2F3F0] border border-[#343934]"
             aria-label="Toggle color theme"
           >
             {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -171,7 +170,7 @@ export function Navbar() {
 
           <button
             onClick={() => setOpen(!open)}
-            className="p-1.5 text-[#8b949e] hover:text-[#f0f6fc]"
+            className="p-2 text-[#929690] hover:text-[#F2F3F0]"
             aria-label="Toggle menu"
           >
             {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -187,34 +186,37 @@ export function Navbar() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: duration.fast, ease: ease.standard }}
-            className="overflow-hidden md:hidden border-b border-[#30363d] bg-[#161b22] px-6 py-4 flex flex-col gap-3 text-xs font-mono"
+            className="overflow-hidden md:hidden border-b border-[#343934] bg-[#1B1D1B] px-6 py-4 flex flex-col gap-3 text-xs font-mono"
           >
-            <Link to="/#how-it-works" onClick={() => setOpen(false)} className="text-[#8b949e] py-1">
+            <Link to="/#transfer" onClick={() => setOpen(false)} className="text-[#929690] py-1">
+              Transfer Workspace
+            </Link>
+            <Link to="/#how-it-works" onClick={() => setOpen(false)} className="text-[#929690] py-1">
               How it works
             </Link>
-            <Link to="/security" onClick={() => setOpen(false)} className="text-[#8b949e] py-1">
-              Security
+            <Link to="/security" onClick={() => setOpen(false)} className="text-[#929690] py-1">
+              Security Architecture
             </Link>
-            <Link to="/docs" onClick={() => setOpen(false)} className="text-[#8b949e] py-1">
-              Docs
+            <Link to="/docs" onClick={() => setOpen(false)} className="text-[#929690] py-1">
+              Documentation
             </Link>
-            <Link to="/brand" onClick={() => setOpen(false)} className="text-[#8b949e] py-1">
-              Brand
+            <Link to="/brand" onClick={() => setOpen(false)} className="text-[#929690] py-1">
+              Brand Assets
             </Link>
             <a
               href={`https://github.com/${GITHUB_REPO}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#8b949e] py-1"
+              className="text-[#929690] py-1"
             >
-              GitHub
+              GitHub ↗
             </a>
             <Link
-              to="/#download"
+              to="/#transfer"
               onClick={() => setOpen(false)}
-              className="mt-2 text-center py-2 rounded font-medium text-[#0e1117] bg-[#38bdf8]"
+              className="mt-2 text-center py-2.5 rounded-xl font-medium text-[#0C0D0C] bg-[#A3B899]"
             >
-              Download binaries
+              Launch Transfer
             </Link>
           </motion.div>
         )}
@@ -223,7 +225,6 @@ export function Navbar() {
   );
 }
 
-// Generate random Crockford Base32 8-rune code
 function generatePairingCode(): string {
   const alphabet = TOKENS.brand.crockfordAlphabet;
   let code = "";
@@ -239,7 +240,6 @@ export function Footer() {
   const [keyCounter, setKeyCounter] = useState(0);
   const { duration, ease } = TOKENS.motion;
 
-  // Item 47: Generate new code & re-run flip animation
   const handleRegenerate = () => {
     setCode(generatePairingCode());
     setKeyCounter((k) => k + 1);
@@ -252,20 +252,20 @@ export function Footer() {
   };
 
   return (
-    <footer className="border-t border-[#30363d] bg-[#0e1117] py-16 text-xs text-[#8b949e]">
-      <div className="mx-auto max-w-4xl px-6 space-y-12">
-        {/* Item 47: Pairing Code signature brand element in footer */}
-        <div className="p-6 rounded border border-[#30363d] bg-[#161b22] flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+    <footer className="border-t border-[#343934] bg-[#0C0D0C] py-16 text-xs text-[#929690]">
+      <div className="mx-auto max-w-5xl px-6 space-y-12">
+        {/* Pairing Code signature brand element in footer */}
+        <div className="p-6 rounded-xl border border-[#343934] bg-[#1B1D1B] flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="font-mono text-[10px] uppercase tracking-wider text-[#38bdf8]">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-[#A3B899]">
                 Ephemeral Pairing Anchor
               </span>
-              <span className="text-[10px] font-mono text-[#8b949e] bg-[#21262d] px-1.5 py-0.5 rounded border border-[#30363d]">
+              <span className="text-[10px] font-mono text-[#929690] bg-[#252825] px-2 py-0.5 rounded border border-[#343934]">
                 TTL: 5m
               </span>
             </div>
-            <p className="text-sm font-medium text-[#f0f6fc]">
+            <p className="font-display text-sm font-medium text-[#F2F3F0]">
               Pair any phone, PC, or TV instantly with a single code.
             </p>
           </div>
@@ -274,7 +274,7 @@ export function Footer() {
             {/* Flipping Characters */}
             <div
               key={keyCounter}
-              className="flex items-center gap-1 font-mono text-base font-bold text-[#f0f6fc] bg-[#0e1117] px-3.5 py-2 rounded border border-[#30363d]"
+              className="flex items-center gap-1 font-mono text-base font-bold text-[#F2F3F0] bg-[#0C0D0C] px-3.5 py-2 rounded-lg border border-[#343934]"
             >
               {code.split("").map((char, i) => (
                 <motion.span
@@ -286,7 +286,7 @@ export function Footer() {
                     ease: ease.standard,
                     delay: i * 0.04,
                   }}
-                  className={char === "-" ? "text-[#8b949e] mx-0.5" : "text-[#38bdf8]"}
+                  className={char === "-" ? "text-[#929690] mx-0.5" : "text-[#A3B899]"}
                 >
                   {char}
                 </motion.span>
@@ -295,21 +295,21 @@ export function Footer() {
 
             <button
               onClick={handleRegenerate}
-              className="p-2 rounded bg-[#21262d] border border-[#30363d] hover:text-[#f0f6fc] hover:bg-[#30363d] transition cursor-pointer"
-              title="Generate new 8-character pairing code"
+              className="p-2 rounded-lg bg-[#252825] border border-[#343934] hover:text-[#F2F3F0] hover:bg-[#343934] transition cursor-pointer"
+              title="Generate new pairing code"
             >
-              <RefreshCw className="w-3.5 h-3.5 text-[#38bdf8]" />
+              <RefreshCw className="w-3.5 h-3.5 text-[#A3B899]" />
             </button>
 
             <button
               onClick={handleCopy}
-              className="p-2 rounded bg-[#21262d] border border-[#30363d] hover:text-[#f0f6fc] hover:bg-[#30363d] transition cursor-pointer flex items-center gap-1 text-[11px] font-mono"
+              className="p-2 rounded-lg bg-[#252825] border border-[#343934] hover:text-[#F2F3F0] hover:bg-[#343934] transition cursor-pointer flex items-center gap-1.5 text-[11px] font-mono"
               title="Copy code"
             >
               {copied ? (
                 <>
-                  <Check className="w-3.5 h-3.5 text-[#38bdf8]" />
-                  <span className="text-[#38bdf8]">Copied</span>
+                  <Check className="w-3.5 h-3.5 text-[#A3B899]" />
+                  <span className="text-[#A3B899]">Copied</span>
                 </>
               ) : (
                 <>
@@ -321,19 +321,19 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Item 48: Minimal line-art drawing of three devices connected, stroking into view */}
-        <div className="py-6 flex flex-col items-center justify-center border-y border-[#30363d]/50">
-          <div className="font-mono text-[10px] uppercase tracking-wider text-[#8b949e] mb-4">
-            Unified Device Cloud • Topology
+        {/* Minimal line-art drawing of three devices connected */}
+        <div className="py-6 flex flex-col items-center justify-center border-y border-[#343934]/60">
+          <div className="font-mono text-[10px] uppercase tracking-wider text-[#929690] mb-4">
+            Unified Device Cloud • Direct Topology
           </div>
           <svg
             viewBox="0 0 360 80"
-            className="w-full max-w-sm h-16 stroke-current text-[#8b949e]"
+            className="w-full max-w-sm h-16 stroke-current text-[#929690]"
             fill="none"
           >
             {/* Phone outline on left */}
             <rect x="20" y="15" width="28" height="50" rx="4" strokeWidth="1.5" />
-            <circle cx="34" cy="58" r="2" fill="#38bdf8" />
+            <circle cx="34" cy="58" r="2" fill="#A3B899" />
 
             {/* PC outline in center */}
             <rect x="156" y="15" width="48" height="34" rx="2" strokeWidth="1.5" />
@@ -347,23 +347,23 @@ export function Footer() {
             {/* Connecting paths stroking in on view */}
             <motion.path
               d="M 48 40 L 156 32"
-              stroke="#38bdf8"
+              stroke="#A3B899"
               strokeWidth="1.5"
               strokeDasharray="4 4"
               initial={{ pathLength: 0, opacity: 0 }}
               whileInView={{ pathLength: 1, opacity: 1 }}
               viewport={{ once: true }}
-              transition={{ duration: duration.slow, ease: ease.decelerate }}
+              transition={{ duration: duration.reveal, ease: ease.decelerate }}
             />
             <motion.path
               d="M 204 32 L 292 34"
-              stroke="#38bdf8"
+              stroke="#A3B899"
               strokeWidth="1.5"
               strokeDasharray="4 4"
               initial={{ pathLength: 0, opacity: 0 }}
               whileInView={{ pathLength: 1, opacity: 1 }}
               viewport={{ once: true }}
-              transition={{ duration: duration.slow, ease: ease.decelerate, delay: 0.15 }}
+              transition={{ duration: duration.reveal, ease: ease.decelerate, delay: 0.15 }}
             />
           </svg>
         </div>
@@ -371,36 +371,36 @@ export function Footer() {
         {/* Links & metadata */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <NasendLogo size={16} />
-            <span className="font-mono text-[11px] text-[#8b949e]">v0.1.0 • MIT License</span>
+            <NasendLogo size={18} />
+            <span className="font-mono text-[11px] text-[#929690]">v0.1.0 • MIT License</span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-6 font-mono text-[11px] text-[#8b949e]">
-            <Link to="/security" className="hover:text-[#f0f6fc] transition">
+          <div className="flex flex-wrap items-center gap-6 font-mono text-[11px] text-[#929690]">
+            <Link to="/security" className="hover:text-[#F2F3F0] transition">
               Security
             </Link>
-            <Link to="/docs" className="hover:text-[#f0f6fc] transition">
+            <Link to="/docs" className="hover:text-[#F2F3F0] transition">
               Documentation
             </Link>
-            <Link to="/brand" className="hover:text-[#f0f6fc] transition">
-              Brand Guidelines
+            <Link to="/brand" className="hover:text-[#F2F3F0] transition">
+              Brand Assets
             </Link>
             <a
               href={`https://github.com/${GITHUB_REPO}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-[#f0f6fc] transition"
+              className="hover:text-[#F2F3F0] transition"
             >
               GitHub ↗
             </a>
           </div>
         </div>
 
-        <div className="border-t border-[#30363d]/50 pt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-[11px] font-mono">
+        <div className="border-t border-[#343934]/60 pt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-[11px] font-mono">
           <p>
             No user accounts. Zero external file storage. Signaling coordinated via Cloudflare Workers.
           </p>
-          <p className="text-[#38bdf8]">Port 8743 • RFC 7233 • DTLS 1.3</p>
+          <p className="text-[#A3B899]">Port 8743 • RFC 7233 • DTLS 1.3</p>
         </div>
       </div>
     </footer>

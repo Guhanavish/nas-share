@@ -1,164 +1,130 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { useState } from "react";
+import { motion } from "motion/react";
+import { Send, Download, ShieldCheck } from "lucide-react";
 import { LiveDeviceDiagram } from "../hero/LiveDeviceDiagram";
 import { PairingCodeGridPattern } from "../brand/PairingCodeGridPattern";
 import { TOKENS } from "../../tokens";
 
 interface HeroSectionProps {
-  onNavigate: (id: string) => void;
+  onSelectSend?: () => void;
+  onSelectReceive?: () => void;
 }
 
-export function HeroSection({ onNavigate }: HeroSectionProps) {
+export function HeroSection({ onSelectSend, onSelectReceive }: HeroSectionProps) {
   const [copied, setCopied] = useState(false);
-  const [pairedPulse, setPairedPulse] = useState(true);
-  const [code, setCode] = useState("K7M2Q9XD");
-
+  const code = "K7M2-Q9XD";
   const { duration, ease } = TOKENS.motion;
 
-  useEffect(() => {
-    // Pulse the connection once when two devices pair, then hold steady (Item 20)
-    const t = setTimeout(() => {
-      setPairedPulse(false);
-    }, 2000);
-    return () => clearTimeout(t);
-  }, []);
-
   const handleCopyCode = () => {
-    const formatted = `${code.slice(0, 4)}-${code.slice(4)}`;
-    navigator.clipboard.writeText(formatted).catch(() => {});
+    navigator.clipboard.writeText(code).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const regenerateCode = () => {
-    const chars = TOKENS.brand.crockfordAlphabet;
-    let next = "";
-    for (let i = 0; i < 8; i++) {
-      next += chars[Math.floor(Math.random() * chars.length)];
+  const scrollToTransfer = () => {
+    const el = document.getElementById("transfer");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
     }
-    setCode(next);
   };
 
   return (
-    <section className="relative pt-24 pb-20 border-b border-[#30363d] overflow-hidden">
-      {/* Background Brand Pattern (Item 4) */}
+    <section className="relative pt-20 pb-16 sm:pt-28 sm:pb-24 border-b border-[#343934] overflow-hidden">
+      {/* Background Architectural Grid Pattern */}
       <PairingCodeGridPattern />
 
-      <div className="relative mx-auto max-w-4xl px-6">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
-          {/* Left Column: Asymmetric Editorial Copy (Items 16 & 17) */}
-          <div className="md:col-span-7 space-y-6">
-            <div className="font-mono text-[11px] uppercase tracking-wider text-[#8b949e]">
-              Device-as-NAS Mesh
+      <div className="relative mx-auto max-w-5xl px-6 space-y-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          {/* Left Column: Editorial Space Grotesk Typography */}
+          <div className="lg:col-span-7 space-y-6 text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#343934] bg-[#1B1D1B] text-[11px] font-mono text-[#929690] uppercase tracking-wider">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#A3B899]" />
+              <span>Direct Device-to-Device Transfer</span>
             </div>
 
-            {/* Headline revealed line by line with masked rise (Item 16) */}
-            <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight text-[#f0f6fc] leading-[1.12]">
+            {/* Oversized Headline in Space Grotesk */}
+            <h1 className="font-display text-4xl sm:text-6xl md:text-7xl font-semibold tracking-tight text-[#F2F3F0] leading-[1.08]">
               <span className="block overflow-hidden">
                 <motion.span
                   className="block"
                   initial={{ y: "100%", opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  transition={{ duration: duration.slow, ease: ease.decelerate }}
+                  transition={{ duration: duration.reveal, ease: ease.decelerate }}
                 >
-                  Files between your devices,
+                  Your files.
                 </motion.span>
               </span>
               <span className="block overflow-hidden">
                 <motion.span
-                  className="block"
+                  className="block text-[#A3B899]"
                   initial={{ y: "100%", opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  transition={{ duration: duration.slow, delay: 0.1, ease: ease.decelerate }}
+                  transition={{ duration: duration.reveal, delay: 0.1, ease: ease.decelerate }}
                 >
-                  without a server.
+                  A direct connection.
                 </motion.span>
               </span>
             </h1>
 
-            <p className="text-base text-[#8b949e] leading-relaxed max-w-xl">
-              Nasend pools your phone, tablet, and PC into a direct peer-to-peer network for file transfers and local streaming.
+            {/* Supporting Copy */}
+            <p className="text-base sm:text-lg text-[#929690] leading-relaxed max-w-xl font-sans">
+              Move files between your devices through a simple, seamless transfer experience.
+              Streams peer-to-peer over local LAN or encrypted WebRTC without cloud intermediaries.
             </p>
 
-            {/* Signature Brand Element: Pairing code flipping into place sequentially (Items 5 & 17) */}
-            <div className="pt-2 pb-1">
-              <div
-                className={`inline-flex flex-col gap-2 p-3.5 rounded border bg-[#161b22] transition-colors ${
-                  pairedPulse ? "border-[#38bdf8]" : "border-[#30363d]"
-                }`}
+            {/* Primary Action Buttons */}
+            <div className="pt-2 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  if (onSelectSend) onSelectSend();
+                  scrollToTransfer();
+                }}
+                className="px-5 py-3 rounded-xl bg-[#A3B899] text-[#0C0D0C] font-mono font-medium text-xs hover:bg-[#B5C8AC] active:translate-y-[1px] transition shadow-md cursor-pointer flex items-center gap-2"
               >
-                <div className="flex items-center justify-between text-[11px] font-mono text-[#8b949e]">
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-[#38bdf8] inline-block" />
-                    <span>Pairing code</span>
-                  </span>
-                  <span>5-minute single-use</span>
-                </div>
+                <Send className="w-3.5 h-3.5" />
+                <span>Send Files</span>
+              </button>
 
-                {/* Character sequence flip (Item 17) */}
-                <div className="flex items-center gap-1 font-mono text-2xl tracking-[0.2em] text-[#f0f6fc]">
-                  {code.split("").map((char, index) => (
-                    <div key={index} className="flex items-center">
-                      {index === 4 && <span className="text-[#8b949e] px-1 select-none">-</span>}
-                      <AnimatePresence mode="popLayout" initial={false}>
-                        <motion.span
-                          key={`${index}-${char}`}
-                          initial={{ opacity: 0, rotateX: -90, y: -4 }}
-                          animate={{ opacity: 1, rotateX: 0, y: 0 }}
-                          exit={{ opacity: 0, rotateX: 90, y: 4 }}
-                          transition={{
-                            duration: duration.fast,
-                            delay: index * 0.04,
-                            ease: ease.standard,
-                          }}
-                          className="inline-block"
-                        >
-                          {char}
-                        </motion.span>
-                      </AnimatePresence>
-                    </div>
-                  ))}
-                </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (onSelectReceive) onSelectReceive();
+                  scrollToTransfer();
+                }}
+                className="px-5 py-3 rounded-xl bg-[#1B1D1B] text-[#F2F3F0] border border-[#343934] font-mono font-medium text-xs hover:bg-[#252825] hover:border-[#414741] active:translate-y-[1px] transition cursor-pointer flex items-center gap-2"
+              >
+                <Download className="w-3.5 h-3.5 text-[#A3B899]" />
+                <span>Receive Files</span>
+              </button>
 
-                <div className="pt-1 flex items-center justify-between gap-4 text-[10px] font-mono text-[#8b949e] border-t border-[#30363d]/50">
-                  <button
-                    onClick={regenerateCode}
-                    className="hover:text-[#f0f6fc] transition cursor-pointer"
-                  >
-                    Generate new code
-                  </button>
-                  <button
-                    onClick={handleCopyCode}
-                    className="text-[#38bdf8] hover:underline cursor-pointer"
-                  >
-                    {copied ? "Copied" : "Copy code"}
-                  </button>
-                </div>
+              {/* Single-use Code Anchor */}
+              <div
+                onClick={handleCopyCode}
+                className="px-3.5 py-2.5 rounded-xl bg-[#1B1D1B] border border-[#343934] text-xs font-mono text-[#929690] flex items-center gap-2 cursor-pointer hover:border-[#414741] transition select-none"
+                title="Click to copy pairing code"
+              >
+                <span>Room:</span>
+                <span className="text-[#A3B899] font-semibold tracking-wider">{code}</span>
+                <span className="text-[10px] text-[#929690]">{copied ? "Copied" : "5m"}</span>
               </div>
             </div>
 
-            {/* Action buttons with 2px translate active press (Items 40 & 41) */}
-            <div className="pt-2 flex items-center gap-6">
-              <button
-                onClick={() => onNavigate("download")}
-                className="px-4 py-2 rounded text-sm font-medium text-[#0e1117] bg-[#38bdf8] hover:bg-[#7dd3fc] active:translate-y-[2px] transition cursor-pointer"
-              >
-                Download
-              </button>
-
-              <button
-                onClick={() => onNavigate("how-it-works")}
-                className="text-sm text-[#8b949e] hover:text-[#f0f6fc] transition cursor-pointer relative group"
-              >
-                <span>How it works</span>
-                {/* Left to right drawing underline on hover (Item 40) */}
-                <span className="absolute left-0 bottom-0 w-0 h-[1px] bg-[#f0f6fc] group-hover:w-full transition-all duration-200" />
-              </button>
+            {/* Trust pill */}
+            <div className="pt-2 flex items-center gap-4 text-xs font-mono text-[#929690]">
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#A3B899]" />
+                <span>DTLS 1.3 Pinning</span>
+              </span>
+              <span>•</span>
+              <span>Port 8743</span>
+              <span>•</span>
+              <span>Zero cloud storage</span>
             </div>
           </div>
 
-          {/* Right Column: Live Network Diagram (Item 19) */}
-          <div className="md:col-span-5">
+          {/* Right Column: Abstract Device Connection Schematic */}
+          <div className="lg:col-span-5">
             <LiveDeviceDiagram />
           </div>
         </div>

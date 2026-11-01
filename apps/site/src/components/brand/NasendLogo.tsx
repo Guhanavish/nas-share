@@ -9,18 +9,18 @@ interface NasendLogoProps {
 
 /**
  * Brand System: Minimal Two-Node Linked Logo Mark
- * Built from simple geometry in one color.
- * On first load: strokes the two nodes, then draws the connecting link (Item 15).
+ * Built from pure geometry in signature sage accent (#A3B899).
+ * Strokes the two device nodes, then establishes the direct connection link.
  */
 export function NasendLogo({
-  size = 20,
+  size = 22,
   className = "",
   animateOnMount = true,
 }: NasendLogoProps) {
   const { duration, ease } = TOKENS.motion;
 
   return (
-    <div className={`inline-flex items-center gap-2 select-none ${className}`}>
+    <div className={`inline-flex items-center gap-2.5 select-none ${className}`}>
       {/* Two Linked Nodes SVG Mark */}
       <svg
         width={size}
@@ -28,10 +28,10 @@ export function NasendLogo({
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="text-[#38bdf8] shrink-0"
+        className="text-[#A3B899] shrink-0"
         aria-hidden="true"
       >
-        {/* Node A (Left) */}
+        {/* Node A (Sender device) */}
         <motion.circle
           cx="6"
           cy="12"
@@ -43,7 +43,7 @@ export function NasendLogo({
           transition={{ duration: duration.normal, ease: ease.standard }}
         />
 
-        {/* Node B (Right) */}
+        {/* Node B (Receiver device) */}
         <motion.circle
           cx="18"
           cy="12"
@@ -55,7 +55,7 @@ export function NasendLogo({
           transition={{ duration: duration.normal, delay: 0.1, ease: ease.standard }}
         />
 
-        {/* Connecting Link Line */}
+        {/* Direct P2P Link */}
         <motion.line
           x1="9.5"
           y1="12"
@@ -66,12 +66,12 @@ export function NasendLogo({
           strokeLinecap="round"
           initial={animateOnMount ? { pathLength: 0, opacity: 0 } : false}
           animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: duration.fast, delay: 0.25, ease: ease.standard }}
+          transition={{ duration: duration.fast, delay: 0.22, ease: ease.standard }}
         />
       </svg>
 
-      {/* Wordmark: "nasend" in lowercase with custom letter spacing (Item 2) */}
-      <span className="font-semibold text-sm tracking-[-0.035em] text-[#f0f6fc] lowercase">
+      {/* Wordmark: "nasend" in Space Grotesk / lowercase with tight letter spacing */}
+      <span className="font-display font-semibold text-[15px] tracking-tight text-[#F2F3F0] lowercase">
         nasend
       </span>
     </div>

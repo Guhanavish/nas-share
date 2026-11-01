@@ -37,7 +37,7 @@ export function DownloadSection({ release }: DownloadSectionProps) {
 
   const { duration, ease } = TOKENS.motion;
 
-  // Item 37: Detect visitor's platform
+  // Detect visitor's platform
   useEffect(() => {
     if (typeof navigator === "undefined") return;
     const ua = navigator.userAgent.toLowerCase();
@@ -81,12 +81,11 @@ export function DownloadSection({ release }: DownloadSectionProps) {
     },
   ];
 
-  // Item 38: Animate button fill left to right on press, then show check mark & start download
+  // Button fill on click
   const handleDownloadClick = (bin: BinaryItem) => {
     if (downloadingId) return;
     setDownloadingId(bin.id);
 
-    // After 600ms progress fill completes
     setTimeout(() => {
       setDownloadingId(null);
       setCompletedId(bin.id);
@@ -95,13 +94,13 @@ export function DownloadSection({ release }: DownloadSectionProps) {
       setTimeout(() => {
         setCompletedId((curr) => (curr === bin.id ? null : curr));
       }, 3000);
-    }, 600);
+    }, 550);
   };
 
-  // Item 39: Reveal SHA-256 checksum with character-by-character decode typing effect
+  // Reveal SHA-256 with character typing decode effect
   const handleDecodeHash = (bin: BinaryItem) => {
     if (isDecoding[bin.id]) return;
-    if (revealedHashes[bin.id]) return; // already fully decoded
+    if (revealedHashes[bin.id]) return;
 
     setIsDecoding((prev) => ({ ...prev, [bin.id]: true }));
     const hexChars = "0123456789abcdef";
@@ -132,28 +131,28 @@ export function DownloadSection({ release }: DownloadSectionProps) {
   };
 
   return (
-    <section id="download" className="py-20 border-b border-[#30363d]">
-      <div className="mx-auto max-w-4xl px-6 space-y-10">
-        <div className="space-y-3">
+    <section id="download" className="py-24 border-b border-[#343934]">
+      <div className="mx-auto max-w-5xl px-6 space-y-12">
+        <div className="space-y-3 text-left">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[11px] uppercase tracking-wider text-[#8b949e]">
-              Releases &amp; Checksums
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#343934] bg-[#1B1D1B] text-[11px] font-mono text-[#929690] uppercase tracking-wider">
+              Releases &amp; Binaries
             </span>
             {detectedOs !== "Other" && (
-              <span className="text-[10px] font-mono text-[#38bdf8] bg-[#38bdf8]/10 px-2 py-0.5 rounded border border-[#38bdf8]/30">
+              <span className="text-[10px] font-mono text-[#A3B899] bg-[#A3B899]/10 px-2.5 py-0.5 rounded-full border border-[#A3B899]/30">
                 Detected: {detectedOs}
               </span>
             )}
           </div>
-          <h2 className="text-2xl font-semibold tracking-tight text-[#f0f6fc]">
-            Download binaries
+          <h2 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-[#F2F3F0]">
+            Download native applications
           </h2>
-          <p className="text-sm text-[#8b949e] leading-relaxed max-w-xl">
-            Binaries are built reproducibly from source. Cryptographic SHA-256 hashes confirm archive integrity prior to execution.
+          <p className="text-sm sm:text-base text-[#929690] leading-relaxed max-w-xl font-sans">
+            Binaries are built reproducibly from source. Cryptographic SHA-256 hashes verify package integrity prior to launch.
           </p>
         </div>
 
-        {/* Clean binary cards with Item 37 OS highlight, Item 38 button fill, Item 39 hash decode */}
+        {/* Clean binary cards */}
         <div className="space-y-4">
           {binaries.map((bin) => {
             const isMatch = detectedOs === bin.os;
@@ -165,62 +164,61 @@ export function DownloadSection({ release }: DownloadSectionProps) {
             return (
               <div
                 key={bin.id}
-                className={`p-4 sm:p-5 rounded border transition-colors duration-150 bg-[#161b22] space-y-3 ${
-                  isMatch ? "border-[#38bdf8]/60 bg-[#161b22]/90" : "border-[#30363d]"
+                className={`p-5 sm:p-6 rounded-xl border transition-colors duration-150 bg-[#1B1D1B] space-y-4 ${
+                  isMatch ? "border-[#A3B899] shadow-[0_0_20px_rgba(163,184,153,0.06)]" : "border-[#343934]"
                 }`}
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm text-[#f0f6fc] font-mono">
+                    <div className="flex items-center gap-2.5">
+                      <span className="font-mono font-semibold text-sm text-[#F2F3F0]">
                         {bin.fileName}
                       </span>
-                      <span className="text-[10px] font-mono text-[#8b949e] bg-[#21262d] px-1.5 py-0.5 rounded border border-[#30363d]">
+                      <span className="text-[10px] font-mono text-[#929690] bg-[#252825] px-2 py-0.5 rounded border border-[#343934]">
                         {bin.size}
                       </span>
                       {isMatch && (
-                        <span className="text-[10px] font-mono text-[#38bdf8] px-1.5 py-0.5 rounded bg-[#38bdf8]/10 border border-[#38bdf8]/30">
-                          Recommended for you
+                        <span className="text-[10px] font-mono text-[#A3B899] px-2 py-0.5 rounded bg-[#A3B899]/10 border border-[#A3B899]/30">
+                          Recommended
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-[#8b949e]">
+                    <p className="text-xs text-[#929690]">
                       {bin.os} • {bin.type} ({bin.arch})
                     </p>
                   </div>
 
-                  {/* Item 38: Button fill left-to-right on press */}
-                  <div className="self-start sm:self-auto relative overflow-hidden rounded">
+                  {/* Button with fill effect */}
+                  <div className="self-start sm:self-auto relative overflow-hidden rounded-xl">
                     <button
                       onClick={() => handleDownloadClick(bin)}
                       disabled={isDownloading}
-                      className={`relative overflow-hidden px-4 py-2 rounded text-xs font-mono font-medium transition cursor-pointer select-none active:translate-y-[1px] ${
+                      className={`relative overflow-hidden px-5 py-2.5 rounded-xl text-xs font-mono font-medium transition cursor-pointer select-none active:translate-y-[1px] ${
                         isMatch
-                          ? "bg-[#38bdf8] text-[#0e1117] hover:bg-[#7dd3fc]"
-                          : "bg-[#21262d] text-[#f0f6fc] border border-[#30363d] hover:bg-[#30363d]"
+                          ? "bg-[#A3B899] text-[#0C0D0C] hover:bg-[#B5C8AC]"
+                          : "bg-[#252825] text-[#F2F3F0] border border-[#343934] hover:bg-[#343934]"
                       }`}
                     >
-                      {/* Left-to-right fill overlay */}
                       {isDownloading && (
                         <motion.div
                           initial={{ scaleX: 0 }}
                           animate={{ scaleX: 1 }}
-                          transition={{ duration: duration.slow, ease: ease.standard }}
-                          className="absolute inset-0 bg-[#0284c7] origin-left"
+                          transition={{ duration: duration.reveal, ease: ease.standard }}
+                          className="absolute inset-0 bg-[#8DA283] origin-left"
                           style={{ willChange: "transform" }}
                         />
                       )}
 
-                      <span className="relative z-10 flex items-center gap-1.5">
+                      <span className="relative z-10 flex items-center gap-2">
                         {isCompleted ? (
                           <>
-                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            <Check className="w-3.5 h-3.5 text-[#0C0D0C]" />
                             <span>Downloaded ({bin.size})</span>
                           </>
                         ) : isDownloading ? (
                           <>
                             <Download className="w-3.5 h-3.5 animate-pulse" />
-                            <span>Preparing package...</span>
+                            <span>Preparing binary...</span>
                           </>
                         ) : (
                           <>
@@ -233,14 +231,14 @@ export function DownloadSection({ release }: DownloadSectionProps) {
                   </div>
                 </div>
 
-                {/* Item 39: SHA-256 Checksum with character-by-character decode typing effect */}
-                <div className="pt-2 border-t border-[#30363d]/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] font-mono text-[#8b949e]">
+                {/* SHA-256 Checksum block */}
+                <div className="pt-3 border-t border-[#343934] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] font-mono text-[#929690]">
                   <div className="flex items-center gap-2 truncate pr-2">
-                    <span className="text-[#8b949e] shrink-0 flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5 text-[#38bdf8]" />
+                    <span className="text-[#929690] shrink-0 flex items-center gap-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5 text-[#A3B899]" />
                       SHA-256:
                     </span>
-                    <span className="text-[#f0f6fc] truncate tracking-wider">
+                    <span className="text-[#F2F3F0] truncate tracking-wider">
                       {currentDisplayedHash}
                     </span>
                   </div>
@@ -250,7 +248,7 @@ export function DownloadSection({ release }: DownloadSectionProps) {
                       <button
                         onClick={() => handleDecodeHash(bin)}
                         disabled={isDecoding[bin.id]}
-                        className="text-[10px] text-[#38bdf8] hover:underline cursor-pointer flex items-center gap-1"
+                        className="text-[10px] text-[#A3B899] hover:underline cursor-pointer flex items-center gap-1"
                       >
                         <Terminal className="w-3 h-3" />
                         <span>{isDecoding[bin.id] ? "Decoding..." : "Verify Hash"}</span>
@@ -259,13 +257,13 @@ export function DownloadSection({ release }: DownloadSectionProps) {
 
                     <button
                       onClick={() => handleCopy(bin.hash)}
-                      className="p-1 hover:text-[#f0f6fc] transition cursor-pointer flex items-center gap-1 text-[10px]"
+                      className="p-1 hover:text-[#F2F3F0] transition cursor-pointer flex items-center gap-1 text-[10px]"
                       title="Copy SHA-256 checksum"
                     >
                       {copiedHash === bin.hash ? (
                         <>
-                          <Check className="w-3.5 h-3.5 text-[#38bdf8]" />
-                          <span className="text-[#38bdf8]">Copied</span>
+                          <Check className="w-3.5 h-3.5 text-[#A3B899]" />
+                          <span className="text-[#A3B899]">Copied</span>
                         </>
                       ) : (
                         <>
@@ -281,15 +279,15 @@ export function DownloadSection({ release }: DownloadSectionProps) {
           })}
         </div>
 
-        {/* Source link & release info */}
-        <div className="pt-2 flex flex-wrap items-center justify-between gap-4 text-xs font-mono text-[#8b949e]">
-          <span>Open Source (MIT License) • Zero telemetry</span>
+        {/* Footer info */}
+        <div className="pt-2 flex flex-wrap items-center justify-between gap-4 text-xs font-mono text-[#929690]">
+          <span>Open Source (MIT License) • Zero Telemetry</span>
           <div className="flex items-center gap-4">
             <a
               href={releasesPage}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#38bdf8] hover:underline"
+              className="text-[#A3B899] hover:underline"
             >
               GitHub Release Changelog ↗
             </a>
@@ -297,7 +295,7 @@ export function DownloadSection({ release }: DownloadSectionProps) {
               href={`https://github.com/${GITHUB_REPO}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#38bdf8] hover:underline"
+              className="text-[#A3B899] hover:underline"
             >
               Source code ↗
             </a>

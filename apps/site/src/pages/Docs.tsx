@@ -17,7 +17,7 @@ const guides = [
     title: "2. Android TV Living Room Setup",
     steps: [
       "Install the universal APK on your Android TV or Google TV device via USB drive or ADB install.",
-      "Launch Nasend from your Leanback TV launcher.",
+      "Launch NASend from your Leanback TV launcher.",
       "Select 'Show QR' or generate a pairing code on the TV screen; pair from your phone or PC.",
       "Navigate shared remote PC video libraries using your TV remote D-Pad.",
     ],
@@ -44,40 +44,40 @@ const guides = [
 
 export function Docs() {
   useMeta({
-    title: "Documentation — Nasend",
-    description: "Setup guides, architecture, and protocol documentation for Nasend.",
+    title: "Documentation — NASend",
+    description: "Setup guides, architecture, and protocol documentation for NASend.",
     path: "/docs",
   });
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-16 space-y-12">
+    <div className="mx-auto max-w-4xl px-6 py-16 space-y-12 bg-[#0C0D0C] text-[#F2F3F0]">
       <Breadcrumbs trail={[{ label: "Docs" }]} />
 
       <div className="space-y-4">
-        <div className="font-mono text-[11px] uppercase tracking-wider text-[#8b949e]">
+        <div className="font-mono text-[11px] uppercase tracking-wider text-[#929690]">
           Documentation &amp; Guides
         </div>
-        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#f0f6fc]">
-          Nasend Documentation
+        <h1 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-[#F2F3F0]">
+          NASend Documentation
         </h1>
-        <p className="text-base text-[#8b949e] leading-relaxed max-w-2xl">
-          Instructions for setting up, pairing, and configuring sovereign peer-to-peer storage across Windows, Android, and Android TV.
+        <p className="text-base text-[#929690] leading-relaxed max-w-2xl font-sans">
+          Instructions for setting up, pairing, and configuring sovereign peer-to-peer storage across Windows, Android, Android TV, and web browsers.
         </p>
       </div>
 
-      {/* Repository documentation references (Step 3) */}
-      <div className="p-4 rounded border border-[#30363d] bg-[#161b22] space-y-2 text-xs font-mono">
-        <span className="text-[#f0f6fc] font-medium block">
+      {/* Repository documentation references */}
+      <div className="p-5 rounded-xl border border-[#343934] bg-[#1B1D1B] space-y-2.5 text-xs font-mono">
+        <span className="text-[#F2F3F0] font-medium block">
           Repository Specifications &amp; Docs:
         </span>
-        <ul className="space-y-1.5 text-[#8b949e]">
+        <ul className="space-y-2 text-[#929690]">
           <li>
             •{" "}
             <a
               href={`https://github.com/${GITHUB_REPO}/blob/master/packages/protocol/protocol.md`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#38bdf8] hover:underline"
+              className="text-[#A3B899] hover:underline"
             >
               packages/protocol/protocol.md
             </a>{" "}
@@ -89,7 +89,7 @@ export function Docs() {
               href={`https://github.com/${GITHUB_REPO}/blob/master/docs/test-checklist.md`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#38bdf8] hover:underline"
+              className="text-[#A3B899] hover:underline"
             >
               docs/test-checklist.md
             </a>{" "}
@@ -101,7 +101,7 @@ export function Docs() {
               href={`https://github.com/${GITHUB_REPO}/tree/master/apps/windows`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#38bdf8] hover:underline"
+              className="text-[#A3B899] hover:underline"
             >
               apps/windows/
             </a>{" "}
@@ -113,7 +113,7 @@ export function Docs() {
               href={`https://github.com/${GITHUB_REPO}/tree/master/apps/android`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#38bdf8] hover:underline"
+              className="text-[#A3B899] hover:underline"
             >
               apps/android/
             </a>{" "}
@@ -123,11 +123,11 @@ export function Docs() {
       </div>
 
       {/* Step by step guides */}
-      <div className="space-y-8 border-t border-[#30363d] pt-8">
+      <div className="space-y-8 border-t border-[#343934] pt-8">
         {guides.map((g) => (
           <div key={g.title} className="space-y-3">
-            <h2 className="text-base font-medium text-[#f0f6fc]">{g.title}</h2>
-            <ol className="list-decimal pl-5 space-y-1.5 text-xs text-[#8b949e] leading-relaxed">
+            <h2 className="font-display text-lg font-semibold text-[#F2F3F0]">{g.title}</h2>
+            <ol className="list-decimal pl-5 space-y-1.5 text-xs text-[#929690] leading-relaxed font-sans">
               {g.steps.map((st, i) => (
                 <li key={i}>{st}</li>
               ))}
@@ -136,11 +136,11 @@ export function Docs() {
         ))}
       </div>
 
-      <div className="border-t border-[#30363d] pt-6 flex items-center justify-between text-xs font-mono">
-        <Link to="/" className="text-[#38bdf8] hover:underline">
+      <div className="border-t border-[#343934] pt-6 flex items-center justify-between text-xs font-mono">
+        <Link to="/" className="text-[#A3B899] hover:underline">
           ← Return to Home
         </Link>
-        <Link to="/security" className="text-[#38bdf8] hover:underline">
+        <Link to="/security" className="text-[#A3B899] hover:underline">
           Review security model →
         </Link>
       </div>

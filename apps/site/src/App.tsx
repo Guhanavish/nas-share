@@ -7,6 +7,7 @@ import { initFaviconAnimation } from "./lib/faviconAnimation";
 import { Home } from "./pages/Home";
 import { useLatestRelease } from "./lib/site";
 
+const TransferPage = lazy(() => import("./pages/TransferPage").then((m) => ({ default: m.TransferPage })));
 const Docs = lazy(() => import("./pages/Docs").then((m) => ({ default: m.Docs })));
 const Security = lazy(() => import("./pages/Security").then((m) => ({ default: m.Security })));
 const Brand = lazy(() => import("./pages/Brand").then((m) => ({ default: m.Brand })));
@@ -48,9 +49,9 @@ function ScrollManager() {
 function PageSkeleton() {
   return (
     <div className="mx-auto max-w-4xl px-6 pt-24 pb-20 space-y-4" aria-label="Loading page">
-      <div className="h-3 w-28 rounded bg-[#161b22]" />
-      <div className="h-8 w-2/3 rounded bg-[#161b22]" />
-      <div className="h-4 w-1/2 rounded bg-[#161b22]" />
+      <div className="h-3 w-28 rounded bg-[#1B1D1B]" />
+      <div className="h-8 w-2/3 rounded bg-[#1B1D1B]" />
+      <div className="h-4 w-1/2 rounded bg-[#1B1D1B]" />
     </div>
   );
 }
@@ -80,10 +81,11 @@ export default function App() {
       <ScrollProgressBar />
       <ScrollManager />
       <Navbar />
-      <main className="min-h-screen bg-[#0e1117]">
+      <main className="min-h-screen bg-[#0C0D0C]">
         <Suspense fallback={<PageSkeleton />}>
           <Routes>
             <Route path="/" element={<Home release={release} />} />
+            <Route path="/transfer" element={<TransferPage />} />
             <Route path="/security" element={<Security />} />
             <Route path="/docs" element={<Docs />} />
             <Route path="/brand" element={<Brand />} />
