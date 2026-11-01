@@ -1,20 +1,12 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { motion } from "motion/react";
 import { Copy, Check } from "lucide-react";
 import { TOKENS } from "../../tokens";
 import { CodeExpiryRing } from "../motion/CodeExpiryRing";
-import { useToast } from "../toast/ToastProvider";
+import { useToast } from "../toast/useToast";
 import { useActive } from "../../lib/useActive";
 import { usePrefersReducedMotion } from "../../lib/usePrefersReducedMotion";
-
-function getRandomCode(): string {
-  const alphabet = TOKENS.brand.crockfordAlphabet;
-  let res = "";
-  for (let i = 0; i < 8; i++) {
-    res += alphabet[Math.floor(Math.random() * alphabet.length)];
-  }
-  return `${res.slice(0, 4)}-${res.slice(4)}`;
-}
+import { generateCode } from "../../lib/pairing";
 
 export function FlippingPairingCode({
   onCopy,
@@ -28,12 +20,13 @@ export function FlippingPairingCode({
   const [flipKey, setFlipKey] = useState(0);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const copyTimeoutRef = useRef<number | null>(null);
   const isActive = useActive(containerRef);
   const reduced = usePrefersReducedMotion();
   const { toast } = useToast();
 
   const handleExpire = useCallback(() => {
-    setCode(getRandomCode());
+    setCode(generateCode());
     setFlipKey((k) => k + 1);
   }, []);
 
@@ -47,14 +40,21 @@ export function FlippingPairingCode({
     setCopied(true);
     toast(`Copied ${code} to clipboard`);
     onCopy?.(code);
-    setTimeout(() => setCopied(false), 2000);
+    if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    copyTimeoutRef.current = window.setTimeout(() => setCopied(false), 2000);
   };
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
 
   return (
     <div
       ref={containerRef}
       onClick={handleCopy}
-      className="inline-flex items-center gap-3 px-3.5 py-2 rounded-xl bg-[#1B1D1B] border border-[#343934] text-xs font-mono text-[#929690] cursor-pointer hover:border-[#414741] hover:bg-[#252825] transition select-none group"
+      className="inline-flex items-center gap-3 px-3.5 py-2 rounded-xl bg-[#1B1D1B] border border-[#343934] text-xs font-mono text-[#929690] cursor-pointer hover:border-[#414741] hover:bg-[#252825] transition select-none group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A3B899]"
       title="Click to copy pairing code (single-use, 5m expiry)"
       role="button"
       tabIndex={0}
@@ -65,59 +65,52 @@ export function FlippingPairingCode({
         }
       }}
     >
-      <div className="flex items-center gap-2">
-        <span className="text-[10px] text-[#929690] uppercase tracking-wider">Example code:</span>
-        <div className="flex items-center gap-0.5">
-          {code.split("").map((char, index) => (
-            <span key={index} className="inline-block perspective-[400px]">
-              {char === "-" ? (
-                <span className="text-[#929690] mx-0.5 font-bold">-</span>
-              ) : (
-                <motion.span
-                  key={`${flipKey}-${index}-${char}`}
-                  initial={reduced ? false : { rotateX: 90, opacity: 0 }}
-                  animate={{ rotateX: 0, opacity: 1 }}
-                  transition={{
-                    duration: 0.28,
-                    delay: index * 0.06,
-                    ease: [0.16, 1, 0.3, 1],
-                  }}
-                  className="inline-block text-[#A3B899] font-bold tracking-wider"
-                >
-                  {char}
-                </motion.span>
-              )}
-            </span>
-          ))}
-        </div>
+      {/* 5-minute animated circular countdown ring */}
+      <CodeExpiryRing
+        key={flipKey}
+        size={18}
+        durationMs={300000}
+        running={isActive}
+        onExpire={handleExpire}
+      />
+
+      {/* Characters flip into place with stagger */}
+      <div className="flex items-center tracking-widest font-semibold text-[#A3B899]">
+        {code.split("").map((char, i) => (
+          <span key={`${flipKey}-${i}`} className="inline-block overflow-hidden h-4">
+            <motion.span
+              className="inline-block"
+              initial={reduced ? false : { rotateX: 90, opacity: 0 }}
+              animate={{ rotateX: 0, opacity: 1 }}
+              transition={{
+                duration: 0.25,
+                delay: i * 0.04,
+                ease: TOKENS.motion.ease.standard,
+              }}
+            >
+              {char}
+            </motion.span>
+          </span>
+        ))}
       </div>
 
-      {/* 16px SVG countdown ring + copy icon */}
-      <div className="flex items-center gap-1.5 pl-2 border-l border-[#343934]">
-        <CodeExpiryRing
-          durationMs={300000} // 5m
-          running={isActive}
-          onExpire={handleExpire}
-          size={16}
-          strokeWidth={2}
-        />
+      <div className="flex items-center gap-1.5 pl-1 border-l border-[#343934]">
         {copied ? (
           <Check className="w-3.5 h-3.5 text-[#A3B899]" />
         ) : (
           <Copy className="w-3.5 h-3.5 text-[#929690] group-hover:text-[#F2F3F0] transition" />
         )}
-      </div>
 
-      {showNewCodeButton && (
-        <button
-          type="button"
-          onClick={handleRollNew}
-          className="text-[10px] font-mono text-[#929690] hover:text-[#A3B899] underline underline-offset-2 transition cursor-pointer pl-2 border-l border-[#343934]"
-          title="Generate a new example code"
-        >
-          New code
-        </button>
-      )}
+        {showNewCodeButton && (
+          <button
+            type="button"
+            onClick={handleRollNew}
+            className="ml-1 text-[10px] text-[#929690] hover:text-[#A3B899] underline cursor-pointer"
+          >
+            New
+          </button>
+        )}
+      </div>
     </div>
   );
 }

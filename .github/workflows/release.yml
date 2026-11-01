@@ -1,0 +1,78 @@
+name: Publish Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/windows/package-lock.json
+
+      - name: Setup Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/windows/src-tauri -> target
+
+      - name: Install Windows App Dependencies
+        working-directory: apps/windows
+        run: npm ci
+
+      - name: Build Tauri App (Portable & NSIS)
+        uses: tauri-apps/tauri-action@v0
+        with:
+          projectPath: apps/windows
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prepare Release Assets & Checksums
+        shell: bash
+        run: |
+          mkdir -p release-dist
+          # Copy portable exe
+          if [ -f apps/windows/src-tauri/target/release/nas-share-desktop.exe ]; then
+            cp apps/windows/src-tauri/target/release/nas-share-desktop.exe release-dist/
+          fi
+          # Copy nsis installer
+          for f in apps/windows/src-tauri/target/release/bundle/nsis/*.exe; do
+            if [ -f "$f" ]; then
+              cp "$f" release-dist/NAS-Share-setup.exe
+              break
+            fi
+          done
+          # Copy Android APK if present in staging or workspace
+          if [ -f release-assets/app-release.apk ]; then
+            cp release-assets/app-release.apk release-dist/
+          fi
+
+          cd release-dist
+          bash ../scripts/make-sha256sums.sh .
+          cd ..
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-dist/*
+          body_path: release-dist/SHA256SUMS
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

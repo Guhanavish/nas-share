@@ -33,8 +33,7 @@ export function ConnectionVisualizer({
   const reduced = usePrefersReducedMotion();
   const { duration, ease } = TOKENS.motion;
 
-  // Item 23: Map connection status to 4 visible steps
-  // 0: Discovering, 1: Exchanging keys, 2: Identity pinned, 3: Streaming
+  // Map connection status to 4 visible steps in demo flow
   let currentStepIdx = -1;
   if (state === "waiting") currentStepIdx = 0;
   else if (state === "connecting") currentStepIdx = 1;
@@ -144,9 +143,9 @@ export function ConnectionVisualizer({
             </div>
           )}
 
-          {/* Protocol pill badge in center */}
-          <div className="absolute left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-[#0C0D0C] border border-[#343934] text-[10px] font-mono text-[#929690] select-none">
-            {isConnected ? "DTLS" : "Signaling"}
+          {/* Protocol pill badge in center (honest label: Demo) */}
+          <div className="absolute left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-[#0C0D0C] border border-[#343934] text-[11px] font-mono text-[#929690] select-none">
+            Demo
           </div>
         </div>
 
@@ -165,7 +164,7 @@ export function ConnectionVisualizer({
         </div>
       </div>
 
-      {/* Item 23: Handshake Stepper */}
+      {/* Handshake Stepper */}
       {currentStepIdx >= 0 && (
         <div className="pt-2 border-t border-[#343934]/60">
           <div className="grid grid-cols-4 gap-2">
@@ -217,7 +216,7 @@ export function ConnectionVisualizer({
                   </div>
 
                   <span
-                    className={`font-mono text-[9px] tracking-tight ${
+                    className={`font-mono text-[10px] tracking-tight ${
                       isCurrent
                         ? "text-[#A3B899] font-medium"
                         : isPast

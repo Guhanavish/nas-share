@@ -52,6 +52,20 @@ export function useMeta(opts: { title: string; description: string; path: string
       return m;
     }) as HTMLMetaElement;
     ogUrl.content = url;
+
+    const twTitle = set('meta[name="twitter:title"]', () => {
+      const m = document.createElement("meta");
+      m.setAttribute("name", "twitter:title");
+      return m;
+    }) as HTMLMetaElement;
+    twTitle.content = opts.title;
+
+    const twDesc = set('meta[name="twitter:description"]', () => {
+      const m = document.createElement("meta");
+      m.setAttribute("name", "twitter:description");
+      return m;
+    }) as HTMLMetaElement;
+    twDesc.content = opts.description;
   }, [opts.title, opts.description, opts.path]);
 }
 

@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent, useTransform } from "motion/react";
-import { Menu, X, Sun, Moon } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { NasendLogo } from "./brand/NasendLogo";
 import { FlippingPairingCode } from "./hero/FlippingPairingCode";
-import { GITHUB_REPO } from "../lib/site";
+import { GITHUB_REPO, type ReleaseInfo } from "../lib/site";
 import { TOKENS } from "../tokens";
 import { getLenis } from "../lib/lenis";
 import { usePrefersReducedMotion } from "../lib/usePrefersReducedMotion";
@@ -12,12 +12,17 @@ import { hasIntroPlayed } from "../lib/intro";
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [hidden, setHidden] = useState(false);
   const [hasFocus, setHasFocus] = useState(false);
   const lastScrollY = useRef(0);
 
   const loc = useLocation();
+  const [prevPathname, setPrevPathname] = useState(loc.pathname);
+  if (loc.pathname !== prevPathname) {
+    setPrevPathname(loc.pathname);
+    setOpen(false);
+  }
+
   const reduced = usePrefersReducedMotion();
   const introPlayed = hasIntroPlayed();
   const { duration, ease } = TOKENS.motion;
@@ -42,29 +47,6 @@ export function Navbar() {
     }
     lastScrollY.current = latest;
   });
-
-  useEffect(() => {
-    setOpen(false);
-  }, [loc.pathname]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("nasend-theme") as "dark" | "light" | null;
-    if (saved) {
-      setTheme(saved);
-      document.documentElement.setAttribute("data-theme", saved);
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    const next = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    localStorage.setItem("nasend-theme", next);
-    if (next === "light") {
-      document.documentElement.setAttribute("data-theme", "light");
-    } else {
-      document.documentElement.removeAttribute("data-theme");
-    }
-  };
 
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
@@ -112,18 +94,6 @@ export function Navbar() {
           <Link to="/" className="flex items-center gap-2">
             <NasendLogo size={22} />
           </Link>
-
-          {/* Signaling Connection Status Dot (Item 40: loop pauses when hidden or reduced) */}
-          <div
-            className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full border border-[#343934] bg-[#1B1D1B] text-[10px] font-mono text-[#929690]"
-            title="Cloudflare Worker Signaling Server: Operational"
-          >
-            <span className="relative flex h-2 w-2">
-              <span className="motion-safe:animate-ping absolute inline-flex h-full w-full rounded-full bg-[#A3B899] opacity-75 duration-1000" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#A3B899]" />
-            </span>
-            <span>Signaling • Edge Operational</span>
-          </div>
         </div>
 
         {/* Desktop Navigation (Item 11: 1px sage underline with layoutId="nav-indicator") */}
@@ -181,17 +151,6 @@ export function Navbar() {
             GitHub
           </a>
 
-          {/* Theme toggle button */}
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="p-1.5 rounded-lg text-[#929690] hover:text-[#F2F3F0] border border-[#343934] hover:bg-[#252825] active:translate-y-px transition cursor-pointer"
-            aria-label="Toggle color theme"
-            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          >
-            {theme === "dark" ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-          </button>
-
           {/* Send / Receive Primary CTA */}
           {loc.pathname === "/" ? (
             <button
@@ -215,17 +174,10 @@ export function Navbar() {
         <div className="flex md:hidden items-center gap-2">
           <button
             type="button"
-            onClick={toggleTheme}
-            className="p-2 rounded-lg text-[#929690] hover:text-[#F2F3F0] border border-[#343934] active:translate-y-px"
-            aria-label="Toggle color theme"
-          >
-            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-
-          <button
-            type="button"
             onClick={() => setOpen(!open)}
-            className="p-2 text-[#929690] hover:text-[#F2F3F0] active:translate-y-px"
+            aria-expanded={open}
+            aria-controls="mobile-menu"
+            className="p-2 text-[#929690] hover:text-[#F2F3F0] active:translate-y-px cursor-pointer"
             aria-label="Toggle menu"
           >
             {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -237,6 +189,7 @@ export function Navbar() {
       <AnimatePresence>
         {open && (
           <motion.div
+            id="mobile-menu"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
@@ -292,7 +245,7 @@ export function Navbar() {
   );
 }
 
-export function Footer() {
+export function Footer({ release }: { release?: ReleaseInfo | null }) {
   const reduced = usePrefersReducedMotion();
   const { ease } = TOKENS.motion;
 
@@ -369,7 +322,9 @@ export function Footer() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <NasendLogo size={18} animateOnMount={false} />
-            <span className="font-mono text-[11px] text-[#929690]">v0.1.0 • MIT License</span>
+            <span className="font-mono text-[11px] text-[#929690]">
+              {release?.tag ? `${release.tag} • ` : ""}MIT License
+            </span>
           </div>
 
           <div className="flex flex-wrap items-center gap-6 font-mono text-[11px] text-[#929690]">

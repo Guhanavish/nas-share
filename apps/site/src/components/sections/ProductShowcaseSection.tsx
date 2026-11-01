@@ -210,7 +210,7 @@ export function ProductShowcaseSection() {
                         <div className="flex items-center gap-3">
                           <Folder className="w-4 h-4 text-[#929690]" />
                           <div>
-                            <p className="text-xs font-mono text-[#F2F3F0]">Camera_Roll_Archive</p>
+                            <p className="text-xs font-mono text-[#F2F3F0]">DCIM_Photos</p>
                             <span className="text-[10px] font-mono text-[#929690]">4.2 GB • 128 items</span>
                           </div>
                         </div>

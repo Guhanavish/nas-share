@@ -6,7 +6,7 @@
 - Every device runs an embedded FileProto file server (port 8743) and client.
 - Devices pair using an 8-character Crockford Base32 single-use code with a 5-minute expiry.
 - LAN operations communicate over direct TCP sockets via local mDNS.
-- WAN operations communicate over WebRTC DataChannels using DTLS 1.3 encryption.
+- WAN operations communicate over WebRTC DataChannels using DTLS encryption.
 - An ephemeral Cloudflare Worker (Durable Object) brokers WebRTC signaling only (SDP/ICE). File bytes never touch the server.
 
 ## Key pages

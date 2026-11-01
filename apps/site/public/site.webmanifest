@@ -1,11 +1,11 @@
 {
-  "name": "Nasend",
-  "short_name": "Nasend",
+  "name": "NASend",
+  "short_name": "NASend",
   "description": "Files between your devices, without a server. Direct peer-to-peer file transfers and local streaming.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0e1117",
-  "theme_color": "#0e1117",
+  "background_color": "#0C0D0C",
+  "theme_color": "#0C0D0C",
   "icons": [
     { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ]

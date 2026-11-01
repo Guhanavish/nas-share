@@ -1,12 +1,17 @@
 import { useEffect, useState } from "react";
 
+export const SITE_URL = "https://nasend.vercel.app";
+
 /**
  * ONE-LINE SETUP: after creating the GitHub repo + first Release, set this
  * to "owner/repo" (or VITE_GITHUB_REPO env at build time). Everything
  * follows automatically: download buttons, version badge, changelog.
  */
 export const GITHUB_REPO =
-  import.meta.env.VITE_GITHUB_REPO?.trim || "Guhanavish/nas-share";
+  (import.meta.env.VITE_GITHUB_REPO as string | undefined)?.trim() || "Guhanavish/nas-share";
+
+export const SIGNALING_URL =
+  (import.meta.env.VITE_SIGNALING_URL as string | undefined)?.trim() ?? "";
 
 export const APK_ASSET = "app-release.apk";
 export const EXE_SETUP_ASSET = "NAS-Share-setup.exe";
@@ -20,6 +25,7 @@ export interface ReleaseAsset {
   size: number;
   downloads: number;
   url: string;
+  digest?: string;
 }
 
 export interface ReleaseInfo {
@@ -29,6 +35,13 @@ export interface ReleaseInfo {
   publishedAt: string;
   assets: ReleaseAsset[];
   url: string;
+}
+
+export type ReleaseStatus = "loading" | "ok" | "none" | "error";
+
+export interface LatestReleaseResult {
+  status: ReleaseStatus;
+  release: ReleaseInfo | null;
 }
 
 export function formatBytes(bytes: number): string {
@@ -47,9 +60,10 @@ function mapRelease(json: Record<string, unknown>): ReleaseInfo {
     size: Number(a.size ?? 0),
     downloads: Number(a.download_count ?? 0),
     url: String(a.browser_download_url ?? ""),
+    digest: a.digest ? String(a.digest) : undefined,
   }));
   return {
-    tag: String(json.tag_name ?? "v0.1.0"),
+    tag: String(json.tag_name ?? ""),
     name: String(json.name ?? json.tag_name ?? "Release"),
     body: String(json.body ?? ""),
     publishedAt: String(json.published_at ?? ""),
@@ -63,22 +77,44 @@ export function assetUrl(release: ReleaseInfo | null, name: string): string {
   return hit?.url ?? latestPage;
 }
 
-/** Live release metadata; falls back to null so UI degrades to links. */
-export function useLatestRelease() {
-  const [release, setRelease] = useState<ReleaseInfo | null>(null);
+/** Live release metadata with honest status */
+export function useLatestRelease(): LatestReleaseResult {
+  const [result, setResult] = useState<LatestReleaseResult>({
+    status: "loading",
+    release: null,
+  });
+
   useEffect(() => {
     let alive = true;
     fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((j) => {
-        if (alive && j) setRelease(mapRelease(j));
+      .then((r) => {
+        if (r.status === 404) {
+          if (alive) setResult({ status: "none", release: null });
+          return null;
+        }
+        if (!r.ok) {
+          if (alive) setResult({ status: "error", release: null });
+          return null;
+        }
+        return r.json();
       })
-      .catch(() => {});
+      .then((j) => {
+        if (alive && j) {
+          setResult({ status: "ok", release: mapRelease(j) });
+        }
+      })
+      .catch(() => {
+        if (alive) {
+          setResult({ status: "error", release: null });
+        }
+      });
+
     return () => {
       alive = false;
     };
   }, []);
-  return release;
+
+  return result;
 }
 
 /** Full release history for /changelog, with graceful fallback. */

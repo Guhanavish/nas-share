@@ -24,7 +24,7 @@ export function AnimatedToast({ message, type = "copied" }: ToastProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 4 }}
             transition={{ duration: duration.button, ease: ease.standard }}
-            className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-[#1B1D1B] border border-[#343934] text-[#F2F3F0] text-xs font-mono shadow-xl pointer-events-auto select-none"
+            className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-[#1B1D1B] border border-[#343934] text-[#F2F3F0] text-xs font-mono pointer-events-auto select-none"
           >
             <div className="p-1 rounded-md bg-[#252825] text-[#A3B899] border border-[#343934]">
               {type === "copied" ? (

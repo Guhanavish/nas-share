@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { motion } from "motion/react";
 import { Download, RefreshCw, FileCheck } from "lucide-react";
 import { CountUpNumber } from "../glass/CountUpNumber";
@@ -11,11 +12,17 @@ interface TransferCompleteProps {
   onReset: () => void;
 }
 
-export function TransferComplete({ files, mode, onReset }: TransferCompleteProps) {
+export function TransferComplete({ files, mode: _mode, onReset }: TransferCompleteProps) {
   const { duration, ease } = TOKENS.motion;
   const totalBytes = files.reduce((acc, f) => acc + f.size, 0);
   const totalMB = totalBytes / (1024 * 1024);
   const reduced = usePrefersReducedMotion();
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  // Focus completion heading on mount for assistive tech (T10.4)
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, []);
 
   return (
     <motion.div
@@ -24,7 +31,7 @@ export function TransferComplete({ files, mode, onReset }: TransferCompleteProps
       transition={{ duration: duration.normal, ease: ease.standard }}
       className="w-full p-8 rounded-xl border border-[#343934] bg-[#1B1D1B] text-center space-y-6"
     >
-      {/* Item 24: Circle draws (0.4s), then check draws (0.25s) in SVG */}
+      {/* Circle draws (0.4s), then check draws (0.25s) in SVG */}
       <div className="flex justify-center">
         <div className="w-16 h-16 relative flex items-center justify-center">
           <svg viewBox="0 0 64 64" className="w-16 h-16" fill="none">
@@ -63,17 +70,25 @@ export function TransferComplete({ files, mode, onReset }: TransferCompleteProps
       </div>
 
       <div className="space-y-2">
-        <h3 className="font-display text-2xl font-semibold tracking-tight text-[#F2F3F0]">
-          {mode === "send" ? "Files Transferred Successfully" : "Files Received Successfully"}
+        <h3
+          ref={headingRef}
+          tabIndex={-1}
+          className="font-display text-2xl font-semibold tracking-tight text-[#F2F3F0] outline-none"
+        >
+          Demo complete: {files.length} {files.length === 1 ? "file" : "files"}. Nothing was sent.
         </h3>
-        {/* Item 24: CountUpNumber for file count and size */}
-        <div className="text-xs font-mono text-[#929690] flex items-center justify-center gap-1.5 flex-wrap">
+        <p className="text-xs text-[#929690] max-w-md mx-auto">
+          Simulated browser transfer completed. Use the Android or Windows app to transfer real files across your devices.
+        </p>
+
+        {/* CountUpNumber for file count and size */}
+        <div className="text-xs font-mono text-[#929690] flex items-center justify-center gap-1.5 flex-wrap pt-2">
           <CountUpNumber
             end={files.length}
             duration={600}
             className="text-[#F2F3F0] font-semibold"
           />
-          <span>{files.length === 1 ? "item" : "items"}</span>
+          <span>{files.length === 1 ? "item simulated" : "items simulated"}</span>
           <span>•</span>
           <span>
             {totalMB >= 1 ? (
@@ -84,10 +99,10 @@ export function TransferComplete({ files, mode, onReset }: TransferCompleteProps
                   duration={600}
                   className="text-[#F2F3F0] font-semibold"
                 />
-                <span>MB transferred directly</span>
+                <span>MB payload</span>
               </span>
             ) : (
-              <span>{formatBytes(totalBytes)} transferred directly</span>
+              <span>{formatBytes(totalBytes)} payload</span>
             )}
           </span>
         </div>
@@ -110,7 +125,7 @@ export function TransferComplete({ files, mode, onReset }: TransferCompleteProps
                 <a
                   href={file.url}
                   download={file.name}
-                  className="flex items-center gap-1 text-[#A3B899] hover:underline"
+                  className="flex items-center gap-1 text-[#A3B899] hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#A3B899]"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Save</span>
@@ -126,10 +141,10 @@ export function TransferComplete({ files, mode, onReset }: TransferCompleteProps
         <button
           type="button"
           onClick={onReset}
-          className="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-[#A3B899] text-[#0C0D0C] font-mono font-medium text-xs hover:bg-[#B5C8AC] active:translate-y-px transition cursor-pointer flex items-center justify-center gap-2"
+          className="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-[#A3B899] text-[#0C0D0C] font-mono font-medium text-xs hover:bg-[#B5C8AC] active:translate-y-px transition cursor-pointer flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A3B899]"
         >
           <RefreshCw className="w-3.5 h-3.5" />
-          <span>Start New Transfer</span>
+          <span>Reset Demo</span>
         </button>
       </div>
     </motion.div>

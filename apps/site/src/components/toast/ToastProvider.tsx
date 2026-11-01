@@ -1,11 +1,6 @@
-import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from "react";
+import { useState, useCallback, useRef, type ReactNode } from "react";
 import { AnimatedToast } from "./AnimatedToast";
-
-interface ToastContextType {
-  toast: (message: string, type?: "copied" | "info") => void;
-}
-
-const ToastContext = createContext<ToastContextType | null>(null);
+import { ToastContext } from "./useToast";
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [currentMessage, setCurrentMessage] = useState<string | null>(null);
@@ -31,12 +26,4 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <AnimatedToast message={currentMessage} type={currentType} />
     </ToastContext.Provider>
   );
-}
-
-export function useToast(): ToastContextType {
-  const ctx = useContext(ToastContext);
-  if (!ctx) {
-    throw new Error("useToast must be used within a ToastProvider");
-  }
-  return ctx;
 }

@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect } from "react";
-import { HashRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { MotionConfig, motion, AnimatePresence } from "motion/react";
 import Lenis from "lenis";
 import { Navbar, Footer } from "./components/chrome";
@@ -58,13 +58,19 @@ function PageSkeleton() {
   );
 }
 
-function AnimatedRoutes({ release }: { release: ReleaseInfo | null }) {
+function AnimatedRoutes({
+  release,
+  releaseStatus,
+}: {
+  release: ReleaseInfo | null;
+  releaseStatus: "loading" | "ok" | "none" | "error";
+}) {
   const location = useLocation();
   const reduced = usePrefersReducedMotion();
   const { duration, ease } = TOKENS.motion;
 
   useEffect(() => {
-    // Item 36: Refresh ScrollTrigger after a route enters (if on home and loaded)
+    // Refresh ScrollTrigger after route enters (if on home and loaded)
     if (location.pathname === "/") {
       const t = setTimeout(() => {
         import("gsap/ScrollTrigger").then(({ ScrollTrigger }) => {
@@ -91,7 +97,7 @@ function AnimatedRoutes({ release }: { release: ReleaseInfo | null }) {
       >
         <Suspense fallback={<PageSkeleton />}>
           <Routes location={location}>
-            <Route path="/" element={<Home release={release} />} />
+            <Route path="/" element={<Home release={release} releaseStatus={releaseStatus} />} />
             <Route path="/transfer" element={<TransferPage />} />
             <Route path="/security" element={<Security />} />
             <Route path="/docs" element={<Docs />} />
@@ -108,7 +114,7 @@ function AnimatedRoutes({ release }: { release: ReleaseInfo | null }) {
 }
 
 export default function App() {
-  const release = useLatestRelease();
+  const { status: releaseStatus, release } = useLatestRelease();
   const reduced = usePrefersReducedMotion();
 
   useEffect(() => {
@@ -118,37 +124,65 @@ export default function App() {
       return cleanupFavicon;
     }
 
-    const lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
-    setLenis(lenis);
-
     let raf = 0;
-    const loop = (t: number) => {
-      lenis.raf(t);
+    let lenisInstance: Lenis | null = null;
+
+    const startLenis = () => {
+      lenisInstance = new Lenis({ lerp: 0.1, smoothWheel: true });
+      setLenis(lenisInstance);
+
+      const loop = (t: number) => {
+        lenisInstance?.raf(t);
+        raf = requestAnimationFrame(loop);
+      };
       raf = requestAnimationFrame(loop);
     };
-    raf = requestAnimationFrame(loop);
 
-    return () => {
-      cancelAnimationFrame(raf);
-      lenis.destroy();
-      setLenis(null);
-      if (cleanupFavicon) cleanupFavicon();
-    };
+    // Lazy initialize Lenis after first paint (T15.2)
+    if ("requestIdleCallback" in window) {
+      const idleId = (window as unknown as { requestIdleCallback: (cb: () => void, opts: { timeout: number }) => number }).requestIdleCallback(startLenis, { timeout: 1500 });
+      return () => {
+        if ("cancelIdleCallback" in window) {
+          (window as unknown as { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(idleId);
+        }
+        cancelAnimationFrame(raf);
+        lenisInstance?.destroy();
+        setLenis(null);
+        if (cleanupFavicon) cleanupFavicon();
+      };
+    } else {
+      const timer = setTimeout(startLenis, 150);
+      return () => {
+        clearTimeout(timer);
+        cancelAnimationFrame(raf);
+        lenisInstance?.destroy();
+        setLenis(null);
+        if (cleanupFavicon) cleanupFavicon();
+      };
+    }
   }, [reduced]);
 
   return (
     <MotionConfig reducedMotion="user">
       <ToastProvider>
-        <HashRouter>
+        {/* Skip to content link for accessibility (T10.6) */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#A3B899] focus:text-[#0C0D0C] focus:font-mono focus:text-xs focus:font-semibold focus:outline-none focus:ring-2 focus:ring-[#F2F3F0]"
+        >
+          Skip to main content
+        </a>
+
+        <BrowserRouter>
           <ScrollProgressBar />
           <ScrollManager />
           <SectionRail />
           <Navbar />
-          <main className="min-h-screen bg-[#0C0D0C]">
-            <AnimatedRoutes release={release} />
+          <main id="main-content" tabIndex={-1} className="min-h-screen bg-[#0C0D0C] outline-none">
+            <AnimatedRoutes release={release} releaseStatus={releaseStatus} />
           </main>
           <Footer />
-        </HashRouter>
+        </BrowserRouter>
       </ToastProvider>
     </MotionConfig>
   );

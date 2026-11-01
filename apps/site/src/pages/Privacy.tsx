@@ -9,7 +9,7 @@ const privacyTable: Array<{ item: string; kanji: string; status: string; detail:
     item: "User Accounts",
     kanji: "無口座",
     status: "ZERO",
-    detail: "We have no registration system, no emails, no phone numbers, and no passwords. The app exists as pure autonomous binary.",
+    detail: "No registration system, no emails, no phone numbers, and no passwords. The app exists as pure autonomous binaries.",
   },
   {
     item: "Site Analytics",
@@ -39,7 +39,7 @@ const privacyTable: Array<{ item: string; kanji: string; status: string; detail:
     item: "Cookies & Storage",
     kanji: "無痕跡",
     status: "ZERO COOKIES",
-    detail: "No browser cookies are set by this website. Any preference changes are kept in volatile React state or local session.",
+    detail: "No tracking cookies are set by this website. Any preference changes are kept in volatile React state or local session.",
   },
   {
     item: "Data Deletion",
@@ -51,82 +51,83 @@ const privacyTable: Array<{ item: string; kanji: string; status: string; detail:
 
 export function Privacy() {
   useMeta({
-    title: "Privacy Policy | 影 KAGE — Nasend",
+    title: "Privacy Policy — Nasend",
     description: "Cryptographic zero-knowledge privacy: no user accounts, no analytics, no file storage. All data stays on your physical devices.",
     path: "/privacy",
   });
 
   return (
-    <div className="mx-auto max-w-4xl px-5 pt-32 pb-28">
+    <div className="mx-auto max-w-4xl px-5 pt-32 pb-28 text-[#F2F3F0]">
       <Breadcrumbs trail={[{ label: "Privacy" }]} />
 
       <div className="mt-4 flex items-center gap-2">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-vermilion/30 bg-vermilion/10 px-3 py-1 font-mono text-[10px] tracking-[0.25em] text-vermilion uppercase">
-          04 // 隠 PRIVACY ARCHITECTURE
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-[#343934] bg-[#1B1D1B] px-3 py-1 font-mono text-[11px] text-[#A3B899] uppercase tracking-wider">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#A3B899]" />
+          <span>Privacy Architecture</span>
         </span>
-        <span className="font-mono text-xs text-fog">ZERO CUSTODY</span>
+        <span className="font-mono text-xs text-[#929690]">ZERO CUSTODY</span>
       </div>
 
-      <h1 className="font-display mt-4 text-4xl font-black tracking-tight text-snow sm:text-5xl">
+      <h1 className="font-display mt-4 text-4xl font-semibold tracking-tight text-[#F2F3F0] sm:text-5xl">
         Cryptographic Privacy
       </h1>
-      <p className="mt-3 max-w-2xl text-base text-fog">
-        Privacy is not a promise made in legalese—it is an architectural impossibility to spy
-        on your data because we never touch your keys or your bytes.
+      <p className="mt-3 max-w-2xl text-base text-[#929690]">
+        Privacy is not a promise made in legalese—it is an architectural guarantee because
+        servers never touch your keys or your file contents.
       </p>
 
       {/* Highlights */}
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
-        <div className="kage-card rounded-2xl p-5">
-          <Lock className="h-6 w-6 text-vermilion" />
-          <h3 className="font-display mt-3 text-base font-bold text-snow">End-to-End DTLS</h3>
-          <p className="mt-1 text-xs leading-relaxed text-fog">
-            All remote payloads are encrypted with authenticated DTLS 1.2/1.3 ciphersuites.
+        <div className="rounded-2xl border border-[#343934] bg-[#1B1D1B] p-5 space-y-2">
+          <Lock className="h-6 w-6 text-[#A3B899]" />
+          <h3 className="font-display text-base font-semibold text-[#F2F3F0]">Direct DTLS</h3>
+          <p className="text-xs leading-relaxed text-[#929690]">
+            All remote payloads are encrypted with authenticated DTLS ciphersuites directly between peers.
           </p>
         </div>
-        <div className="kage-card rounded-2xl p-5">
-          <EyeOff className="h-6 w-6 text-amber" />
-          <h3 className="font-display mt-3 text-base font-bold text-snow">Blind Signaling</h3>
-          <p className="mt-1 text-xs leading-relaxed text-fog">
-            Cloudflare signaling relays SDP offers blind without inspecting or logging payloads.
+        <div className="rounded-2xl border border-[#343934] bg-[#1B1D1B] p-5 space-y-2">
+          <EyeOff className="h-6 w-6 text-[#A3B899]" />
+          <h3 className="font-display text-base font-semibold text-[#F2F3F0]">Blind Signaling</h3>
+          <p className="text-xs leading-relaxed text-[#929690]">
+            Cloudflare signaling relays SDP offers blind without inspecting, storing, or logging payloads.
           </p>
         </div>
-        <div className="kage-card rounded-2xl p-5">
-          <ShieldAlert className="h-6 w-6 text-moss" />
-          <h3 className="font-display mt-3 text-base font-bold text-snow">Zero Cloud Custody</h3>
-          <p className="mt-1 text-xs leading-relaxed text-fog">
-            No R2 buckets, no S3 disks, no VPS filesystems. Everything stays in your physical realm.
+        <div className="rounded-2xl border border-[#343934] bg-[#1B1D1B] p-5 space-y-2">
+          <ShieldAlert className="h-6 w-6 text-[#A3B899]" />
+          <h3 className="font-display text-base font-semibold text-[#F2F3F0]">Zero Cloud Storage</h3>
+          <p className="text-xs leading-relaxed text-[#929690]">
+            No cloud buckets, no third-party disks, no central filesystems. Files stay entirely in your physical devices.
           </p>
         </div>
       </div>
 
       {/* Main Table */}
       <Reveal className="mt-10">
-        <div className="kage-card overflow-hidden rounded-2xl">
-          <div className="border-b border-line bg-card/60 px-6 py-4">
-            <h2 className="font-display text-sm font-bold tracking-wider text-snow uppercase">
-              Privacy Vectors & Commitments
+        <div className="rounded-2xl border border-[#343934] bg-[#1B1D1B] overflow-hidden">
+          <div className="border-b border-[#343934] bg-[#252825] px-6 py-4">
+            <h2 className="font-display text-sm font-semibold tracking-wider text-[#F2F3F0] uppercase">
+              Privacy Vectors &amp; Commitments
             </h2>
           </div>
-          <div className="divide-y divide-line/60">
+          <div className="divide-y divide-[#343934]">
             {privacyTable.map((row) => (
               <div
                 key={row.item}
-                className="grid gap-2 px-6 py-4 transition hover:bg-white/[0.02] sm:grid-cols-[180px_130px_1fr] sm:items-center sm:gap-4"
+                className="grid gap-2 px-6 py-4 transition hover:bg-[#252825]/50 sm:grid-cols-[180px_130px_1fr] sm:items-center sm:gap-4"
               >
                 <div>
-                  <p className="font-display text-sm font-semibold text-snow">{row.item}</p>
+                  <p className="font-display text-sm font-medium text-[#F2F3F0]">{row.item}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="rounded border border-line bg-surface/40 px-2 py-0.5 font-mono text-[10px] text-fog">
+                  <span className="rounded border border-[#343934] bg-[#252825] px-2 py-0.5 font-mono text-[10px] text-[#929690]">
                     {row.kanji}
                   </span>
-                  <span className="font-mono text-[10px] font-bold text-vermilion">
+                  <span className="font-mono text-[10px] font-semibold text-[#A3B899]">
                     {row.status}
                   </span>
                 </div>
                 <div>
-                  <p className="text-xs leading-relaxed text-fog">{row.detail}</p>
+                  <p className="text-xs leading-relaxed text-[#929690]">{row.detail}</p>
                 </div>
               </div>
             ))}
@@ -135,22 +136,22 @@ export function Privacy() {
       </Reveal>
 
       {/* Footer navigation */}
-      <div className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-line bg-card/40 p-6">
+      <div className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#343934] bg-[#1B1D1B] p-6">
         <div>
-          <p className="text-sm font-semibold text-snow">Ready to establish your sovereign mesh?</p>
-          <p className="text-xs text-fog">Download the signed binaries and pair your first node in 30 seconds.</p>
+          <p className="text-sm font-medium text-[#F2F3F0]">Ready to connect your devices?</p>
+          <p className="text-xs text-[#929690]">Download the binaries or try the transfer demo.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <Link
             to="/terms"
-            className="inline-flex items-center gap-1.5 font-mono text-xs text-fog hover:text-snow"
+            className="inline-flex items-center gap-1.5 font-mono text-xs text-[#929690] hover:text-[#F2F3F0] transition"
           >
             <span>Read Terms</span>
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
           <Link
-            to="/#chapter-05"
-            className="inline-flex items-center gap-2 rounded-xl border border-vermilion/40 bg-vermilion/10 px-4 py-2 font-mono text-xs font-semibold text-snow transition hover:bg-vermilion hover:text-ink"
+            to="/#download"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#A3B899] text-[#0C0D0C] px-4 py-2 font-mono text-xs font-semibold hover:bg-[#B5C8AC] transition"
           >
             <Download className="h-3.5 w-3.5" />
             <span>Get Downloads</span>

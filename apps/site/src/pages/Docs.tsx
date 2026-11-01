@@ -18,14 +18,14 @@ const guides = [
     steps: [
       "Install the universal APK on your Android TV or Google TV device via USB drive or ADB install.",
       "Launch NASend from your Leanback TV launcher.",
-      "Select 'Show QR' or generate a pairing code on the TV screen; pair from your phone or PC.",
+      "Generate an 8-character pairing code on the TV screen; enter it on your phone or PC.",
       "Navigate shared remote PC video libraries using your TV remote D-Pad.",
     ],
   },
   {
     title: "3. Windows First Run & Firewall",
     steps: [
-      "Launch nas-share-desktop.exe (portable standalone) or run Nasend-Setup.exe.",
+      "Launch nas-share-desktop.exe (portable standalone) or run NAS-Share-setup.exe.",
       "Allow the Windows Firewall prompt for port 8743 to permit local TCP and mDNS traffic.",
       "Add directories to the Shared Folders table in the settings window.",
       "Closing the window keeps the server running silently in the background system tray.",
