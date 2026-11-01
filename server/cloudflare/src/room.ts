@@ -13,7 +13,7 @@ export interface RoomState {
 }
 
 interface SignalingMessage {
-  type: "offer" | "answer" | "ice" | "join" | "leave" | "ping" | "error";
+  type: "offer" | "answer" | "ice" | "join" | "leave" | "ping" | "error" | "identity_exchange" | "identity_ack" | "commit";
   payload?: unknown;
 }
 
@@ -120,7 +120,17 @@ export class Room implements DurableObject {
     }
 
     // Validate message type
-    const validTypes = new Set(["offer", "answer", "ice", "join", "leave", "ping"]);
+    const validTypes = new Set([
+      "offer",
+      "answer",
+      "ice",
+      "join",
+      "leave",
+      "ping",
+      "identity_exchange",
+      "identity_ack",
+      "commit",
+    ]);
     if (!validTypes.has(msg.type)) {
       ws.send(
         JSON.stringify({

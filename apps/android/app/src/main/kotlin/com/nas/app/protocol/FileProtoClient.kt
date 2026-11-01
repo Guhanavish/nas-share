@@ -127,6 +127,18 @@ class FileProtoClient {
         }
     }
 
+    suspend fun getSyncManifest(peerAddress: String, path: String = "/"): List<SyncManifestEntry> = withContext(Dispatchers.IO) {
+        val url = "http://$peerAddress/api/sync_manifest?path=${java.net.URLEncoder.encode(path, "UTF-8")}"
+        val request = Request.Builder().url(url).build()
+
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) throw Exception("Failed to get sync manifest: ${response.code}")
+            val bodyString = response.body?.string() ?: throw Exception("Empty response")
+            val manifestResp = json.decodeFromString<SyncManifestApiResult>(bodyString)
+            manifestResp.entries
+        }
+    }
+
     fun getStreamUrl(peerAddress: String, path: String): String {
         return "http://$peerAddress/api/read?path=${java.net.URLEncoder.encode(path, "UTF-8")}"
     }
@@ -135,3 +147,9 @@ class FileProtoClient {
         return "http://$peerAddress/api/thumb?path=${java.net.URLEncoder.encode(path, "UTF-8")}"
     }
 }
+
+@kotlinx.serialization.Serializable
+data class SyncManifestApiResult(
+    val ok: Boolean = true,
+    val entries: List<SyncManifestEntry> = emptyList()
+)

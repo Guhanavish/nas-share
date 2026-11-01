@@ -24,6 +24,16 @@
         android:maxSdkVersion="29"
         tools:ignore="ScopedStorage" />
 
+    <!-- Storage Management for arbitrary file sync/server (API 30+) -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
+
+    <!-- Camera for QR Scanning (optional hardware so TV can still install) -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
     <!-- TV / universal: declare leanback + touchscreen optional so one APK installs everywhere -->
     <uses-feature
         android:name="android.software.leanback"

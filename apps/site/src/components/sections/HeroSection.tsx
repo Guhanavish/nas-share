@@ -1,142 +1,165 @@
 import { useState, useEffect } from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
+import { LiveDeviceDiagram } from "../hero/LiveDeviceDiagram";
+import { PairingCodeGridPattern } from "../brand/PairingCodeGridPattern";
+import { TOKENS } from "../../tokens";
 
 interface HeroSectionProps {
   onNavigate: (id: string) => void;
 }
 
 export function HeroSection({ onNavigate }: HeroSectionProps) {
-  const [packetCompleted, setPacketCompleted] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [pairedPulse, setPairedPulse] = useState(true);
+  const [code, setCode] = useState("K7M2Q9XD");
+
+  const { duration, ease } = TOKENS.motion;
 
   useEffect(() => {
-    // Play one short animation of a file moving between two devices, then stop. No looping (Step 4).
-    const timer = setTimeout(() => {
-      setPacketCompleted(true);
-    }, 1800);
-    return () => clearTimeout(timer);
+    // Pulse the connection once when two devices pair, then hold steady (Item 20)
+    const t = setTimeout(() => {
+      setPairedPulse(false);
+    }, 2000);
+    return () => clearTimeout(t);
   }, []);
 
+  const handleCopyCode = () => {
+    const formatted = `${code.slice(0, 4)}-${code.slice(4)}`;
+    navigator.clipboard.writeText(formatted).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const regenerateCode = () => {
+    const chars = TOKENS.brand.crockfordAlphabet;
+    let next = "";
+    for (let i = 0; i < 8; i++) {
+      next += chars[Math.floor(Math.random() * chars.length)];
+    }
+    setCode(next);
+  };
+
   return (
-    <section className="pt-20 pb-16 border-b border-[#30363d]">
-      <div className="mx-auto max-w-4xl px-6">
+    <section className="relative pt-24 pb-20 border-b border-[#30363d] overflow-hidden">
+      {/* Background Brand Pattern (Item 4) */}
+      <PairingCodeGridPattern />
+
+      <div className="relative mx-auto max-w-4xl px-6">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
-          {/* Left Column: Asymmetric Headline, Subline, Static Code, Actions (Step 3 & 4) */}
+          {/* Left Column: Asymmetric Editorial Copy (Items 16 & 17) */}
           <div className="md:col-span-7 space-y-6">
             <div className="font-mono text-[11px] uppercase tracking-wider text-[#8b949e]">
               Device-as-NAS Mesh
             </div>
 
+            {/* Headline revealed line by line with masked rise (Item 16) */}
             <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight text-[#f0f6fc] leading-[1.12]">
-              Files between your devices, without a server.
+              <span className="block overflow-hidden">
+                <motion.span
+                  className="block"
+                  initial={{ y: "100%", opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: duration.slow, ease: ease.decelerate }}
+                >
+                  Files between your devices,
+                </motion.span>
+              </span>
+              <span className="block overflow-hidden">
+                <motion.span
+                  className="block"
+                  initial={{ y: "100%", opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: duration.slow, delay: 0.1, ease: ease.decelerate }}
+                >
+                  without a server.
+                </motion.span>
+              </span>
             </h1>
 
             <p className="text-base text-[#8b949e] leading-relaxed max-w-xl">
               Nasend pools your phone, tablet, and PC into a direct peer-to-peer network for file transfers and local streaming.
             </p>
 
-            {/* Static visual anchor: 8-character Crockford pairing code with wide spacing (Step 2 & 4) */}
+            {/* Signature Brand Element: Pairing code flipping into place sequentially (Items 5 & 17) */}
             <div className="pt-2 pb-1">
-              <div className="inline-flex flex-col gap-1.5 p-3 rounded border border-[#30363d] bg-[#161b22]">
+              <div
+                className={`inline-flex flex-col gap-2 p-3.5 rounded border bg-[#161b22] transition-colors ${
+                  pairedPulse ? "border-[#38bdf8]" : "border-[#30363d]"
+                }`}
+              >
                 <div className="flex items-center justify-between text-[11px] font-mono text-[#8b949e]">
-                  <span>Pairing code</span>
-                  <span>5-minute expiry</span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#38bdf8] inline-block" />
+                    <span>Pairing code</span>
+                  </span>
+                  <span>5-minute single-use</span>
                 </div>
-                <div className="font-mono text-2xl tracking-[0.25em] text-[#f0f6fc] font-normal select-all">
-                  K7M2-Q9XD
+
+                {/* Character sequence flip (Item 17) */}
+                <div className="flex items-center gap-1 font-mono text-2xl tracking-[0.2em] text-[#f0f6fc]">
+                  {code.split("").map((char, index) => (
+                    <div key={index} className="flex items-center">
+                      {index === 4 && <span className="text-[#8b949e] px-1 select-none">-</span>}
+                      <AnimatePresence mode="popLayout" initial={false}>
+                        <motion.span
+                          key={`${index}-${char}`}
+                          initial={{ opacity: 0, rotateX: -90, y: -4 }}
+                          animate={{ opacity: 1, rotateX: 0, y: 0 }}
+                          exit={{ opacity: 0, rotateX: 90, y: 4 }}
+                          transition={{
+                            duration: duration.fast,
+                            delay: index * 0.04,
+                            ease: ease.standard,
+                          }}
+                          className="inline-block"
+                        >
+                          {char}
+                        </motion.span>
+                      </AnimatePresence>
+                    </div>
+                  ))}
                 </div>
-                <div className="text-[10px] font-mono text-[#8b949e]">
-                  Crockford Base32 • Single-use
+
+                <div className="pt-1 flex items-center justify-between gap-4 text-[10px] font-mono text-[#8b949e] border-t border-[#30363d]/50">
+                  <button
+                    onClick={regenerateCode}
+                    className="hover:text-[#f0f6fc] transition cursor-pointer"
+                  >
+                    Generate new code
+                  </button>
+                  <button
+                    onClick={handleCopyCode}
+                    className="text-[#38bdf8] hover:underline cursor-pointer"
+                  >
+                    {copied ? "Copied" : "Copy code"}
+                  </button>
                 </div>
               </div>
             </div>
 
-            {/* Actions: Primary Download button, Secondary How it works text link (Step 4) */}
+            {/* Action buttons with 2px translate active press (Items 40 & 41) */}
             <div className="pt-2 flex items-center gap-6">
               <button
                 onClick={() => onNavigate("download")}
-                className="px-4 py-2 rounded text-sm font-medium text-[#0e1117] bg-[#38bdf8] hover:bg-[#7dd3fc] transition cursor-pointer"
+                className="px-4 py-2 rounded text-sm font-medium text-[#0e1117] bg-[#38bdf8] hover:bg-[#7dd3fc] active:translate-y-[2px] transition cursor-pointer"
               >
                 Download
               </button>
 
               <button
                 onClick={() => onNavigate("how-it-works")}
-                className="text-sm text-[#8b949e] hover:text-[#f0f6fc] underline underline-offset-4 transition cursor-pointer"
+                className="text-sm text-[#8b949e] hover:text-[#f0f6fc] transition cursor-pointer relative group"
               >
-                How it works →
+                <span>How it works</span>
+                {/* Left to right drawing underline on hover (Item 40) */}
+                <span className="absolute left-0 bottom-0 w-0 h-[1px] bg-[#f0f6fc] group-hover:w-full transition-all duration-200" />
               </button>
             </div>
           </div>
 
-          {/* Right Column: Single-color line schematic with zero fills (Step 4) */}
+          {/* Right Column: Live Network Diagram (Item 19) */}
           <div className="md:col-span-5">
-            <div className="window-frame">
-              <div className="window-header">
-                <span>topology_schematic.lan</span>
-                <span>port 8743</span>
-              </div>
-              <div className="p-6">
-                <svg
-                  viewBox="0 0 320 220"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-full h-auto text-[#8b949e]"
-                >
-                  {/* Phone Node Schematic (Left) */}
-                  <rect x="20" y="30" width="80" height="130" rx="4" stroke="currentColor" strokeWidth="1" />
-                  <line x1="30" y1="45" x2="90" y2="45" stroke="currentColor" strokeWidth="1" strokeDasharray="2 2" />
-                  <circle cx="60" cy="145" r="4" stroke="currentColor" strokeWidth="1" />
-                  <text x="60" y="85" textAnchor="middle" fill="#f0f6fc" fontFamily="ui-monospace, monospace" fontSize="11">
-                    Phone
-                  </text>
-                  <text x="60" y="102" textAnchor="middle" fill="#8b949e" fontFamily="ui-monospace, monospace" fontSize="9">
-                    10.0.0.4:8743
-                  </text>
-
-                  {/* PC Node Schematic (Right) */}
-                  <rect x="220" y="40" width="85" height="110" rx="3" stroke="currentColor" strokeWidth="1" />
-                  <line x1="220" y1="125" x2="305" y2="125" stroke="currentColor" strokeWidth="1" />
-                  <path d="M 245 150 L 280 150 L 290 170 L 235 170 Z" stroke="currentColor" strokeWidth="1" />
-                  <text x="262" y="85" textAnchor="middle" fill="#f0f6fc" fontFamily="ui-monospace, monospace" fontSize="11">
-                    Workstation
-                  </text>
-                  <text x="262" y="102" textAnchor="middle" fill="#8b949e" fontFamily="ui-monospace, monospace" fontSize="9">
-                    10.0.0.2:8743
-                  </text>
-
-                  {/* Connecting 1px Hairline Path */}
-                  <line x1="100" y1="95" x2="220" y2="95" stroke="currentColor" strokeWidth="1" strokeDasharray="3 3" />
-
-                  {/* One short animation of a file moving between two devices, then stops (Step 4) */}
-                  {!packetCompleted ? (
-                    <motion.circle
-                      cx="100"
-                      cy="95"
-                      r="3.5"
-                      fill="#38bdf8"
-                      initial={{ cx: 100 }}
-                      animate={{ cx: 220 }}
-                      transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
-                    />
-                  ) : (
-                    <circle cx="220" cy="95" r="3.5" fill="none" stroke="#38bdf8" strokeWidth="1" />
-                  )}
-
-                  {/* Transfer Spec Label */}
-                  <text x="160" y="82" textAnchor="middle" fill="#38bdf8" fontFamily="ui-monospace, monospace" fontSize="9">
-                    HTTP Range 64KB
-                  </text>
-                  <text x="160" y="120" textAnchor="middle" fill="#8b949e" fontFamily="ui-monospace, monospace" fontSize="9">
-                    Direct TCP socket
-                  </text>
-                </svg>
-
-                <div className="mt-3 pt-3 border-t border-[#30363d] flex items-center justify-between text-[11px] font-mono text-[#8b949e]">
-                  <span>Transport: Direct LAN</span>
-                  <span className="text-[#38bdf8]">No server in path</span>
-                </div>
-              </div>
-            </div>
+            <LiveDeviceDiagram />
           </div>
         </div>
       </div>

@@ -45,6 +45,10 @@ export async function generatePairingCode(): Promise<string> {
   return await invoke("generate_pairing_code");
 }
 
+export async function startInitiatorPairing(code: string): Promise<string> {
+  return await invoke("start_initiator_pairing", { code });
+}
+
 export async function joinPairing(code: string): Promise<string> {
   return await invoke("join_pairing", { code });
 }
@@ -79,4 +83,15 @@ export async function downloadFileRemote(
     remotePath,
     localPath,
   });
+}
+
+export interface SyncStats {
+  downloaded: number;
+  uploaded: number;
+  conflicts: number;
+  bytes_transferred: number;
+}
+
+export async function syncFolder(peerAddress: string): Promise<SyncStats> {
+  return await invoke("sync_folder", { peerAddress });
 }

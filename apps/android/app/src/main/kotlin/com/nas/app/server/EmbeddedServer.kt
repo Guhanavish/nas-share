@@ -38,7 +38,43 @@ data class FileEntryResponse(
 )
 
 @Serializable
+data class SyncManifestItem(
+    val path: String,
+    val size: Long,
+    val mtime: Long,
+    val sha256: String
+)
+
+@Serializable
+data class ListResponse(val ok: Boolean = true, val entries: List<FileEntryResponse>)
+
+@Serializable
+data class StatResponse(val ok: Boolean = true, val meta: FileEntryResponse)
+
+@Serializable
+data class WriteAckResponse(val type: String = "write_ack", val ok: Boolean = true, val bytes_written: Int)
+
+@Serializable
+data class SyncManifestResponse(val ok: Boolean = true, val entries: List<SyncManifestItem>)
+
+@Serializable
 data class ErrorJson(val ok: Boolean = false, val code: String, val message: String? = null)
+
+@Serializable
+data class DirectPairRequest(
+    val code: String,
+    val device_id: String,
+    val device_name: String,
+    val pubkey: String
+)
+
+@Serializable
+data class DirectPairResponse(
+    val ok: Boolean = true,
+    val device_id: String,
+    val device_name: String,
+    val pubkey: String
+)
 
 class EmbeddedServer(private val port: Int = 8743) {
 
@@ -72,8 +108,46 @@ class EmbeddedServer(private val port: Int = 8743) {
 
     val isRunning: Boolean get() = server != null
 
+    private val ignoredDirs = setOf(
+        ".git", "node_modules", "build", "target", ".gradle", ".idea", ".vscode",
+        "dist", "__pycache__", ".cache", ".thumbnails", ".Trash", "\$RECYCLE.BIN", ".vercel"
+    )
+    private val ignoredFiles = setOf(".DS_Store", "Thumbs.db", "desktop.ini")
+
+    private fun isIgnoredDir(name: String): Boolean = ignoredDirs.contains(name.lowercase())
+    private fun isIgnoredFile(name: String): Boolean =
+        ignoredFiles.contains(name.lowercase()) || name.endsWith(".tmp", true) || name.endsWith(".part", true)
+
     private fun Application.configureRouting() {
         routing {
+            post("/api/pair") {
+                val req = call.receive<DirectPairRequest>()
+                val dao = NasApplication.instance.database.trustedDeviceDao()
+                val now = System.currentTimeMillis()
+                dao.insert(
+                    com.nas.app.data.TrustedDeviceEntity(
+                        deviceId = req.device_id,
+                        deviceName = req.device_name,
+                        pubkey = req.pubkey,
+                        pinnedAt = now,
+                        lastSeen = now,
+                        isRevoked = false
+                    )
+                )
+                val prefs = NasApplication.instance.getSharedPreferences("nas_identity", 0)
+                val myId = prefs.getString("device_id", "unknown") ?: "unknown"
+                val myPubkey = prefs.getString("pubkey", "") ?: ""
+                val myName = android.os.Build.MODEL
+                call.respond(
+                    DirectPairResponse(
+                        ok = true,
+                        device_id = myId,
+                        device_name = myName,
+                        pubkey = myPubkey
+                    )
+                )
+            }
+
             get("/api/info") {
                 val prefs = NasApplication.instance.getSharedPreferences("nas_identity", 0)
                 val deviceId = prefs.getString("device_id", "unknown") ?: "unknown"
@@ -83,6 +157,24 @@ class EmbeddedServer(private val port: Int = 8743) {
 
             get("/api/list") {
                 val path = call.request.queryParameters["path"] ?: "/"
+                val sharedFolders = NasApplication.instance.database.sharedFolderDao().getEnabled()
+
+                val cleaned = path.trimStart('/').replace('\\', '/')
+                if (cleaned.isEmpty() || path == "/") {
+                    // Return virtual root entries (the shared folders)
+                    val entries = sharedFolders.map { folder ->
+                        val folderFile = File(folder.path)
+                        FileEntryResponse(
+                            name = folder.label,
+                            entry_type = "dir",
+                            size = 0,
+                            mtime = if (folderFile.exists()) folderFile.lastModified() else System.currentTimeMillis()
+                        )
+                    }
+                    call.respond(ListResponse(ok = true, entries = entries))
+                    return@get
+                }
+
                 val resolved = resolveSafePath(path) ?: run {
                     call.respond(HttpStatusCode.Forbidden,
                         ErrorJson(code = "DENIED", message = "Path traversal blocked"))
@@ -107,7 +199,7 @@ class EmbeddedServer(private val port: Int = 8743) {
                         ?: emptyList()
                 }
 
-                call.respond(mapOf("ok" to true, "entries" to entries))
+                call.respond(ListResponse(ok = true, entries = entries))
             }
 
             get("/api/stat") {
@@ -128,9 +220,9 @@ class EmbeddedServer(private val port: Int = 8743) {
                     return@get
                 }
 
-                call.respond(mapOf(
-                    "ok" to true,
-                    "meta" to FileEntryResponse(
+                call.respond(StatResponse(
+                    ok = true,
+                    meta = FileEntryResponse(
                         name = resolved.name,
                         entry_type = if (resolved.isDirectory) "dir" else "file",
                         size = if (resolved.isFile) resolved.length() else 0,
@@ -221,10 +313,8 @@ class EmbeddedServer(private val port: Int = 8743) {
                     }
                 }
 
-                call.respond(mapOf(
-                    "type" to "write_ack",
-                    "ok" to true,
-                    "bytes_written" to bytes.size
+                call.respond(WriteAckResponse(
+                    bytes_written = bytes.size
                 ))
             }
 
@@ -267,7 +357,81 @@ class EmbeddedServer(private val port: Int = 8743) {
 
                 call.respondBytes(thumbBytes, ContentType.Image.JPEG)
             }
+
+            get("/api/sync_manifest") {
+                val path = call.request.queryParameters["path"] ?: "/"
+                val sharedFolders = NasApplication.instance.database.sharedFolderDao().getEnabled()
+
+                val entries = withContext(Dispatchers.IO) {
+                    val result = mutableListOf<SyncManifestItem>()
+                    val cleaned = path.trimStart('/').replace('\\', '/')
+
+                    val targetDirs = mutableListOf<Pair<String, File>>() // (virtualPrefix, physicalDir)
+
+                    if (cleaned.isEmpty() || path == "/") {
+                        for (f in sharedFolders) {
+                            val dir = File(f.path)
+                            if (dir.exists() && dir.isDirectory) {
+                                targetDirs.add(f.label to dir)
+                            }
+                        }
+                    } else {
+                        val resolved = resolveSafePath(path)
+                        if (resolved != null && resolved.exists() && resolved.isDirectory) {
+                            targetDirs.add(cleaned to resolved)
+                        }
+                    }
+
+                    fun scanDir(prefix: String, dir: File) {
+                        val files = dir.listFiles() ?: return
+                        for (file in files) {
+                            val fileName = file.name
+                            if (file.isDirectory) {
+                                if (isIgnoredDir(fileName)) continue
+                                val relPath = if (prefix.isEmpty()) fileName else "$prefix/$fileName"
+                                scanDir(relPath, file)
+                            } else if (file.isFile) {
+                                if (isIgnoredFile(fileName)) continue
+                                val relPath = if (prefix.isEmpty()) fileName else "$prefix/$fileName"
+                                try {
+                                    val hash = calculateSha256(file)
+                                    result.add(
+                                        SyncManifestItem(
+                                            path = relPath,
+                                            size = file.length(),
+                                            mtime = file.lastModified(),
+                                            sha256 = hash
+                                        )
+                                    )
+                                } catch (e: Exception) {
+                                    // Skip unreadable files
+                                }
+                            }
+                        }
+                    }
+
+                    for ((pfx, dir) in targetDirs) {
+                        scanDir(pfx, dir)
+                    }
+
+                    result
+                }
+
+                call.respond(SyncManifestResponse(ok = true, entries = entries))
+            }
         }
+    }
+
+    private fun calculateSha256(file: File): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        file.inputStream().use { input ->
+            val buffer = ByteArray(65536)
+            var bytesRead: Int
+            while (input.read(buffer).also { bytesRead = it } != -1) {
+                digest.update(buffer, 0, bytesRead)
+            }
+        }
+        return digest.digest().joinToString("") { "%02x".format(it) }
     }
 
     // =========================================================================
@@ -277,22 +441,45 @@ class EmbeddedServer(private val port: Int = 8743) {
         val sharedFolders = NasApplication.instance.database.sharedFolderDao().getEnabled()
         if (sharedFolders.isEmpty()) return null
 
-        // Clean path: remove leading slash, normalize separators
         val cleaned = requestedPath.trimStart('/').replace('\\', '/')
+        if (cleaned.isEmpty()) {
+            return null
+        }
 
-        // Try to match against shared folders
+        val topSegment = cleaned.substringBefore('/')
+        val subPath = if (cleaned.contains('/')) cleaned.substringAfter('/') else ""
+
+        // 1. Try matching topSegment with folder.label
         for (folder in sharedFolders) {
-            val baseDir = File(folder.path)
-            if (!baseDir.exists()) continue
+            if (folder.label.equals(topSegment, ignoreCase = true)) {
+                if (requireWrite && folder.acl != "READWRITE") return null
+                val baseDir = File(folder.path).canonicalFile
+                val target = if (subPath.isEmpty()) baseDir else File(baseDir, subPath).canonicalFile
+                if (target.absolutePath.startsWith(baseDir.absolutePath)) {
+                    return target
+                }
+            }
+        }
 
-            // Check write permission
+        // 2. Fallback: try matching directly relative to each shared folder
+        for (folder in sharedFolders) {
             if (requireWrite && folder.acl != "READWRITE") continue
-
+            val baseDir = File(folder.path).canonicalFile
             val target = File(baseDir, cleaned).canonicalFile
-
-            // Verify the resolved path is under the shared root
-            if (target.absolutePath.startsWith(baseDir.canonicalPath)) {
+            if (target.absolutePath.startsWith(baseDir.absolutePath)) {
                 return target
+            }
+        }
+
+        // 3. Fallback for write: if single filename with no subfolder, write into first READWRITE folder
+        if (requireWrite && !cleaned.contains('/')) {
+            val defaultFolder = sharedFolders.firstOrNull { it.acl == "READWRITE" }
+            if (defaultFolder != null) {
+                val baseDir = File(defaultFolder.path).canonicalFile
+                val target = File(baseDir, cleaned).canonicalFile
+                if (target.absolutePath.startsWith(baseDir.absolutePath)) {
+                    return target
+                }
             }
         }
 

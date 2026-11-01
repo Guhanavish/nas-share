@@ -12,13 +12,9 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 [build-dependencies]
 tauri-build = { version = "2.0.0", features = [] }
 
-# Static CRT: bake the C runtime into the EXE so it opens on PCs
-# without the VC++ redistributable installed.
-[target.x86_64-pc-windows-msvc]
-rustflags = ["-C", "target-feature=+crt-static"]
 
 [dependencies]
-tauri = { version = "2.0.0", features = ["tray-icon"] }
+tauri = { version = "2.0.0", features = ["tray-icon", "custom-protocol"] }
 tauri-plugin-dialog = "2.0.0"
 tauri-plugin-notification = "2.0.0"
 serde = { version = "1.0", features = ["derive"] }
@@ -39,3 +35,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 base64 = "0.22"
 dirs = "5.0"
 urlencoding = "2.1"
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]

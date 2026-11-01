@@ -63,6 +63,20 @@ impl Database {
         )
         .map_err(|e| e.to_string())?;
 
+        // Auto-seed Downloads folder if table is empty
+        let count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM shared_folders", [], |row| row.get(0))
+            .unwrap_or(0);
+        if count == 0 {
+            if let Some(download_dir) = dirs::download_dir() {
+                let download_path = download_dir.to_string_lossy().to_string();
+                let _ = conn.execute(
+                    "INSERT INTO shared_folders (id, path, label, acl, enabled) VALUES (?1, ?2, ?3, ?4, ?5)",
+                    params!["default_downloads", download_path, "Downloads", "READWRITE", 1],
+                );
+            }
+        }
+
         Ok(Database {
             conn: Arc::new(Mutex::new(conn)),
         })
@@ -97,6 +111,19 @@ impl Database {
             "#,
         )
         .map_err(|e| e.to_string())?;
+
+        let count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM shared_folders", [], |row| row.get(0))
+            .unwrap_or(0);
+        if count == 0 {
+            if let Some(download_dir) = dirs::download_dir() {
+                let download_path = download_dir.to_string_lossy().to_string();
+                let _ = conn.execute(
+                    "INSERT INTO shared_folders (id, path, label, acl, enabled) VALUES (?1, ?2, ?3, ?4, ?5)",
+                    params!["default_downloads", download_path, "Downloads", "READWRITE", 1],
+                );
+            }
+        }
 
         Ok(Database {
             conn: Arc::new(Mutex::new(conn)),

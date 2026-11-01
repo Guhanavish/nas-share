@@ -1,17 +1,47 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { RefreshCw, ShieldCheck, ArrowRightLeft } from "lucide-react";
+import { syncFolder, getDiscoveredDevices, getTrustedDevices } from "../lib/tauri";
+import { DiscoveredDevice, TrustedDevice } from "../lib/types";
 
 export const SyncPage: React.FC = () => {
   const [autoSync, setAutoSync] = useState<boolean>(true);
   const [syncing, setSyncing] = useState<boolean>(false);
   const [lastSync, setLastSync] = useState<string>("Up to date");
+  const [discovered, setDiscovered] = useState<DiscoveredDevice[]>([]);
+  const [trusted, setTrusted] = useState<TrustedDevice[]>([]);
 
-  const handleSyncNow = () => {
+  useEffect(() => {
+    getDiscoveredDevices().then(setDiscovered).catch(console.error);
+    getTrustedDevices().then(setTrusted).catch(console.error);
+    const interval = setInterval(() => {
+      getDiscoveredDevices().then(setDiscovered).catch(console.error);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleSyncNow = async () => {
+    const peer = discovered.find((d) =>
+      trusted.some((t) => t.device_id === d.device_id || t.pubkey === d.pubkey)
+    ) || discovered[0];
+
+    if (!peer) {
+      setLastSync("No peer device discovered on local network");
+      return;
+    }
+
     setSyncing(true);
-    setTimeout(() => {
+    setLastSync(`Syncing with ${peer.device_name} (${peer.address})...`);
+    try {
+      const stats = await syncFolder(peer.address);
+      const kb = Math.round(stats.bytes_transferred / 1024);
+      setLastSync(
+        `Synced with ${peer.device_name}: ${stats.downloaded} down, ${stats.uploaded} up, ${stats.conflicts} conflicts (${kb} KB)`
+      );
+    } catch (e) {
+      setLastSync(`Sync error: ${String(e)}`);
+    } finally {
       setSyncing(false);
-      setLastSync(`Synced just now (${new Date().toLocaleTimeString()})`);
-    }, 1500);
+    }
   };
 
   return (

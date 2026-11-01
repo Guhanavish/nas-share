@@ -7,9 +7,12 @@ import android.util.Log
 import com.nas.app.NasApplication
 import com.nas.protocol.ConnectionType
 import com.nas.protocol.DiscoveredDevice
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import java.net.InetAddress
 
 class MdnsManager(private val context: Context) {
@@ -70,6 +73,52 @@ class MdnsManager(private val context: Context) {
 
     fun discoverServices(): Flow<List<DiscoveredDevice>> = callbackFlow {
         val discoveredList = mutableMapOf<String, DiscoveredDevice>()
+        val resolveQueue = kotlinx.coroutines.channels.Channel<NsdServiceInfo>(kotlinx.coroutines.channels.Channel.UNLIMITED)
+        val resolveJob = launch {
+            for (service in resolveQueue) {
+                val resolved = kotlinx.coroutines.CompletableDeferred<Unit>()
+                try {
+                    nsdManager.resolveService(service, object : NsdManager.ResolveListener {
+                        override fun onResolveFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
+                            Log.w(TAG, "mDNS Resolve failed for ${serviceInfo.serviceName}: $errorCode")
+                            resolved.complete(Unit)
+                        }
+
+                        override fun onServiceResolved(serviceInfo: NsdServiceInfo) {
+                            try {
+                                val host: InetAddress = serviceInfo.host ?: return
+                                val port = serviceInfo.port
+                                val hostAddress = host.hostAddress ?: return
+
+                                val deviceIdAttr = serviceInfo.attributes["device_id"]?.let { String(it) }
+                                    ?: serviceInfo.serviceName
+                                val deviceNameAttr = serviceInfo.attributes["device_name"]?.let { String(it) }
+                                    ?: serviceInfo.serviceName
+
+                                val device = DiscoveredDevice(
+                                    deviceId = deviceIdAttr,
+                                    deviceName = deviceNameAttr,
+                                    pubkey = "",
+                                    address = "$hostAddress:$port",
+                                    connectionType = ConnectionType.LAN,
+                                    signalStrength = 100
+                                )
+
+                                synchronized(discoveredList) {
+                                    discoveredList[deviceIdAttr] = device
+                                    trySend(discoveredList.values.toList())
+                                }
+                            } finally {
+                                resolved.complete(Unit)
+                            }
+                        }
+                    })
+                    kotlinx.coroutines.withTimeoutOrNull(5000) { resolved.await() }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error resolving service", e)
+                }
+            }
+        }
 
         val discoveryListener = object : NsdManager.DiscoveryListener {
             override fun onDiscoveryStarted(regType: String) {
@@ -78,40 +127,7 @@ class MdnsManager(private val context: Context) {
 
             override fun onServiceFound(service: NsdServiceInfo) {
                 Log.d(TAG, "mDNS Service found: ${service.serviceName}")
-                try {
-                    nsdManager.resolveService(service, object : NsdManager.ResolveListener {
-                        override fun onResolveFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
-                            Log.w(TAG, "mDNS Resolve failed for ${serviceInfo.serviceName}: $errorCode")
-                        }
-
-                        override fun onServiceResolved(serviceInfo: NsdServiceInfo) {
-                            val host: InetAddress = serviceInfo.host ?: return
-                            val port = serviceInfo.port
-                            val hostAddress = host.hostAddress ?: return
-
-                            val deviceIdAttr = serviceInfo.attributes["device_id"]?.let { String(it) }
-                                ?: serviceInfo.serviceName
-                            val deviceNameAttr = serviceInfo.attributes["device_name"]?.let { String(it) }
-                                ?: serviceInfo.serviceName
-
-                            val device = DiscoveredDevice(
-                                deviceId = deviceIdAttr,
-                                deviceName = deviceNameAttr,
-                                pubkey = "",
-                                address = "$hostAddress:$port",
-                                connectionType = ConnectionType.LAN,
-                                signalStrength = 100
-                            )
-
-                            synchronized(discoveredList) {
-                                discoveredList[deviceIdAttr] = device
-                                trySend(discoveredList.values.toList())
-                            }
-                        }
-                    })
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error resolving service", e)
-                }
+                resolveQueue.trySend(service)
             }
 
             override fun onServiceLost(service: NsdServiceInfo) {
@@ -142,6 +158,8 @@ class MdnsManager(private val context: Context) {
         }
 
         awaitClose {
+            resolveJob.cancel()
+            resolveQueue.close()
             try {
                 nsdManager.stopServiceDiscovery(discoveryListener)
             } catch (e: Exception) {

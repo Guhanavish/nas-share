@@ -178,7 +178,7 @@ impl RelayMesh {
         }
 
         // hello
-        self.send_raw(&serde_json::json!({
+        let _ = self.send_raw(&serde_json::json!({
             "type": "hello",
             "device_id": identity.device_id,
             "device_name": identity.device_name,

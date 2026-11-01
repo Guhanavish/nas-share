@@ -71,6 +71,16 @@ fun MainAppNavigation() {
         }
     }
 
+    fun requestNewShowCode() {
+        val code = pairingManager.generateCode()
+        activePairingCode = code
+        pairingState = PairingState.Idle
+        scope.launch {
+            pairingManager.cancelSession()
+            pairingManager.startInitiatorSession(code) { state -> pairingState = state }
+        }
+    }
+
     // Side effect: give TV initial focus to first tab
     LaunchedEffect(posture.isTv, currentRoute) {
         if (posture.isTv && isPrimaryTab) {
@@ -115,7 +125,7 @@ fun MainAppNavigation() {
                             navController.navigate(Screen.Files.createRoute(address, name))
                         },
                         onOpenPairing = {
-                            activePairingCode = pairingManager.generateCode()
+                            activePairingCode = null
                             pairingState = PairingState.Idle
                             isPairingDialogOpen = true
                         }
@@ -145,6 +155,7 @@ fun MainAppNavigation() {
                 PairingDialog(
                     initialCode = activePairingCode,
                     pairingState = pairingState,
+                    onRequestNewCode = { requestNewShowCode() },
                     onJoinCode = { enteredCode ->
                         scope.launch {
                             pairingManager.startJoinerSession(enteredCode) { state -> pairingState = state }
@@ -184,7 +195,7 @@ fun MainAppNavigation() {
                             navController.navigate(Screen.Files.createRoute(address, name))
                         },
                         onOpenPairing = {
-                            activePairingCode = pairingManager.generateCode()
+                            activePairingCode = null
                             pairingState = PairingState.Idle
                             isPairingDialogOpen = true
                         }
@@ -214,6 +225,7 @@ fun MainAppNavigation() {
                 PairingDialog(
                     initialCode = activePairingCode,
                     pairingState = pairingState,
+                    onRequestNewCode = { requestNewShowCode() },
                     onJoinCode = { enteredCode ->
                         scope.launch {
                             pairingManager.startJoinerSession(enteredCode) { state -> pairingState = state }
@@ -257,7 +269,7 @@ fun MainAppNavigation() {
                             navController.navigate(Screen.Files.createRoute(address, name))
                         },
                         onOpenPairing = {
-                            activePairingCode = pairingManager.generateCode()
+                            activePairingCode = null
                             pairingState = PairingState.Idle
                             isPairingDialogOpen = true
                         }
@@ -287,6 +299,7 @@ fun MainAppNavigation() {
                 PairingDialog(
                     initialCode = activePairingCode,
                     pairingState = pairingState,
+                    onRequestNewCode = { requestNewShowCode() },
                     onJoinCode = { enteredCode ->
                         scope.launch {
                             pairingManager.startJoinerSession(enteredCode) { state -> pairingState = state }

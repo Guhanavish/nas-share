@@ -37,9 +37,50 @@ struct StatResponse {
     pub meta: FileMeta,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemoteSyncManifestEntry {
+    pub path: String,
+    pub size: u64,
+    pub mtime: i64,
+    pub sha256: String,
+}
+
+#[allow(dead_code)]
+#[derive(Deserialize)]
+struct SyncManifestResponse {
+    pub ok: bool,
+    pub entries: Vec<RemoteSyncManifestEntry>,
+}
+
 pub struct FileProtoClient;
 
 impl FileProtoClient {
+    pub async fn get_sync_manifest(
+        address: &str,
+        path: &str,
+    ) -> Result<Vec<RemoteSyncManifestEntry>, String> {
+        let client = reqwest::Client::new();
+        let encoded_path = urlencoding::encode(path);
+        let url = format!("http://{}/api/sync_manifest?path={}", address, encoded_path);
+
+        let resp = client
+            .get(&url)
+            .send()
+            .await
+            .map_err(|e| format!("Request failed: {}", e))?;
+
+        if !resp.status().is_success() {
+            return Err(format!("Server returned HTTP {}", resp.status()));
+        }
+
+        let body = resp
+            .json::<SyncManifestResponse>()
+            .await
+            .map_err(|e| format!("Failed to parse JSON: {}", e))?;
+
+        Ok(body.entries)
+    }
+
     pub async fn list_files(address: &str, path: &str) -> Result<Vec<FileEntry>, String> {
         let client = reqwest::Client::new();
         let encoded_path = urlencoding::encode(path);

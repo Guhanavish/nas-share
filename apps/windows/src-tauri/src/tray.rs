@@ -1,4 +1,4 @@
-﻿use tauri::{
+use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     AppHandle, Manager,
@@ -18,9 +18,15 @@ impl TrayManager {
         let menu = Menu::with_items(app, &[&show_i, &hide_i, &quit_i])
             .map_err(|e| e.to_string())?;
 
-        let _tray = TrayIconBuilder::new()
+        let mut builder = TrayIconBuilder::new()
             .menu(&menu)
-            .tooltip("Nasend — Serving files on LAN")
+            .tooltip("Nasend — Serving files on LAN");
+
+        if let Some(icon) = app.default_window_icon() {
+            builder = builder.icon(icon.clone());
+        }
+
+        let _tray = builder
             .on_menu_event(|app, event| match event.id.as_ref() {
                 "show" => {
                     if let Some(window) = app.get_webview_window("main") {

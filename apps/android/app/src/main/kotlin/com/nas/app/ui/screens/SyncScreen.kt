@@ -18,11 +18,14 @@ import androidx.compose.ui.unit.sp
 import com.nas.app.NasApplication
 import com.nas.app.data.SharedFolderEntity
 import com.nas.app.data.TrustedDeviceEntity
+import com.nas.app.discovery.MdnsManager
+import com.nas.app.sync.SyncEngine
 import com.nas.app.ui.adaptive.bodySp
 import com.nas.app.ui.adaptive.rememberUniversalPosture
 import com.nas.app.ui.adaptive.titleSp
 import com.nas.app.ui.adaptive.universalFocusable
-import kotlinx.coroutines.delay
+import com.nas.protocol.DiscoveredDevice
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,10 +37,22 @@ fun SyncScreen() {
     val trustedDevices by db.trustedDeviceDao().getAllTrusted().collectAsState(initial = emptyList())
     val sharedFolders by db.sharedFolderDao().getAll().collectAsState(initial = emptyList())
 
+    val mdnsManager = remember { MdnsManager(context) }
+    var discoveredDevices by remember { mutableStateOf<List<DiscoveredDevice>>(emptyList()) }
+    val syncEngine = remember { SyncEngine(context) }
+
     var autoBackupEnabled by remember { mutableStateOf(true) }
     var isSyncing by remember { mutableStateOf(false) }
+    var syncProgressMessage by remember { mutableStateOf<String?>(null) }
+    var syncProgressFraction by remember { mutableStateOf<Float?>(null) }
     var lastSyncStatus by remember { mutableStateOf("All files up to date (Keep-both policy active)") }
     val posture = rememberUniversalPosture()
+
+    LaunchedEffect(Unit) {
+        mdnsManager.discoverServices().collectLatest { list ->
+            discoveredDevices = list
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -80,19 +95,54 @@ fun SyncScreen() {
                             )
                         }
 
+                        if (syncProgressMessage != null) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(syncProgressMessage ?: "", fontWeight = FontWeight.Medium, fontSize = 13.sp)
+                            Spacer(modifier = Modifier.height(6.dp))
+                            if (syncProgressFraction != null) {
+                                LinearProgressIndicator(
+                                    progress = { syncProgressFraction ?: 0f },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            } else {
+                                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                            }
+                        }
+
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Button(
                             onClick = {
                                 scope.launch {
+                                    val peer = discoveredDevices.firstOrNull { disc ->
+                                        trustedDevices.any { it.deviceId == disc.deviceId || it.pubkey == disc.pubkey }
+                                    } ?: discoveredDevices.firstOrNull()
+
+                                    if (peer == null) {
+                                        Toast.makeText(context, "No peer device discovered on local network", Toast.LENGTH_LONG).show()
+                                        return@launch
+                                    }
+
                                     isSyncing = true
-                                    delay(2000) // Simulate delta scan & sync
+                                    syncProgressMessage = "Starting sync with ${peer.deviceName}..."
+                                    val result = syncEngine.syncWithPeer(peer.address, peer.deviceName) { status, prog ->
+                                        syncProgressMessage = status
+                                        syncProgressFraction = prog
+                                    }
                                     isSyncing = false
-                                    lastSyncStatus = "Completed sync just now • 0 conflicts"
-                                    Toast.makeText(context, "Sync complete!", Toast.LENGTH_SHORT).show()
+                                    syncProgressFraction = null
+                                    syncProgressMessage = null
+
+                                    if (result.error != null) {
+                                        lastSyncStatus = "Sync failed: ${result.error}"
+                                        Toast.makeText(context, "Sync error: ${result.error}", Toast.LENGTH_LONG).show()
+                                    } else {
+                                        lastSyncStatus = "Synced ${result.downloaded} down, ${result.uploaded} up • ${result.conflicts} conflicts"
+                                        Toast.makeText(context, "Sync complete!", Toast.LENGTH_SHORT).show()
+                                    }
                                 }
                             },
-                            enabled = !isSyncing && trustedDevices.isNotEmpty(),
+                            enabled = !isSyncing,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .universalFocusable()

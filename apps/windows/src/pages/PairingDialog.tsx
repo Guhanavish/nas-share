@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { X, Copy, Check, Loader2 } from "lucide-react";
-import { generatePairingCode, joinPairing } from "../lib/tauri";
+import { X, Copy, Check, Loader2, RefreshCw } from "lucide-react";
+import { generatePairingCode, joinPairing, startInitiatorPairing } from "../lib/tauri";
 
 interface PairingDialogProps {
   initialCode?: string | null;
@@ -23,16 +23,35 @@ export const PairingDialog: React.FC<PairingDialogProps> = ({
   const [statusMessage, setStatusMessage] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (mode === "show" && !code) {
-      generatePairingCode()
-        .then((c) => {
-          setCode(c);
-          setTimeLeft(300);
+  const initShowMode = async () => {
+    try {
+      setMode("show");
+      setError(null);
+      setStatusMessage("Listening for peer...");
+      const freshCode = await generatePairingCode();
+      setCode(freshCode);
+      setTimeLeft(300);
+      startInitiatorPairing(freshCode)
+        .then((peerName) => {
+          setStatusMessage(`Verified and paired with ${peerName}!`);
+          setTimeout(() => {
+            onSuccess(peerName);
+            onClose();
+          }, 1500);
         })
-        .catch((e) => setError(String(e)));
+        .catch((e) => {
+          console.warn("Initiator pairing session:", e);
+        });
+    } catch (e) {
+      setError(String(e));
     }
-  }, [mode, code]);
+  };
+
+  useEffect(() => {
+    if (initialCode) {
+      initShowMode();
+    }
+  }, [initialCode]);
 
   useEffect(() => {
     if (mode === "show" && timeLeft > 0) {
@@ -97,20 +116,20 @@ export const PairingDialog: React.FC<PairingDialogProps> = ({
         {/* Tab switch */}
         <div className="flex bg-[#121418] p-1 rounded-xl mb-6">
           <button
-            onClick={() => setMode("show")}
-            className={`flex-1 py-2 text-sm font-medium rounded-lg transition ${
-              mode === "show" ? "bg-primary text-white" : "text-gray-400 hover:text-white"
-            }`}
-          >
-            Show Code
-          </button>
-          <button
             onClick={() => setMode("enter")}
             className={`flex-1 py-2 text-sm font-medium rounded-lg transition ${
               mode === "enter" ? "bg-primary text-white" : "text-gray-400 hover:text-white"
             }`}
           >
             Enter Code
+          </button>
+          <button
+            onClick={() => initShowMode()}
+            className={`flex-1 py-2 text-sm font-medium rounded-lg transition ${
+              mode === "show" ? "bg-primary text-white" : "text-gray-400 hover:text-white"
+            }`}
+          >
+            Show Code / QR
           </button>
         </div>
 
@@ -130,6 +149,13 @@ export const PairingDialog: React.FC<PairingDialogProps> = ({
                 title="Copy code"
               >
                 {copied ? <Check className="w-5 h-5 text-secondary" /> : <Copy className="w-5 h-5" />}
+              </button>
+              <button
+                onClick={initShowMode}
+                className="text-gray-400 hover:text-white transition"
+                title="Generate new unique code"
+              >
+                <RefreshCw className="w-5 h-5" />
               </button>
             </div>
 

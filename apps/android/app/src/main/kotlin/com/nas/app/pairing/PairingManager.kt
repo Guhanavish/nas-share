@@ -109,6 +109,17 @@ class PairingManager(
                             val remoteCommit = root["commit"]?.jsonPrimitive?.content
                             val expectedCommit = DeviceIdentity.sha256(code)
                             if (remoteCommit == expectedCommit) {
+                                // Ensure initiator sends its identity to joiner
+                                val myCommit = DeviceIdentity.sha256(code)
+                                val identityPayload = buildJsonObject {
+                                    put("type", "identity_exchange")
+                                    put("commit", myCommit)
+                                    put("device_id", identity.deviceId)
+                                    put("device_name", identity.deviceName)
+                                    put("pubkey", identity.pubkeyHex)
+                                }
+                                webSocket.send(identityPayload.toString())
+
                                 val remoteId = root["device_id"]?.jsonPrimitive?.content ?: ""
                                 val remoteName = root["device_name"]?.jsonPrimitive?.content ?: "Remote Device"
                                 val remotePubkey = root["pubkey"]?.jsonPrimitive?.content ?: ""
@@ -152,6 +163,24 @@ class PairingManager(
             override fun onOpen(webSocket: WebSocket, response: Response) {
                 Log.d(TAG, "Signaling WebSocket opened (joiner)")
                 onStateChange(PairingState.Connected)
+
+                // 1. Send join event so initiator knows a joiner is in room
+                val joinNotice = buildJsonObject {
+                    put("type", "join")
+                    put("payload", buildJsonObject { put("role", "joiner") })
+                }
+                webSocket.send(joinNotice.toString())
+
+                // 2. Also send identity packet immediately
+                val myCommit = DeviceIdentity.sha256(code)
+                val identityPayload = buildJsonObject {
+                    put("type", "identity_exchange")
+                    put("commit", myCommit)
+                    put("device_id", identity.deviceId)
+                    put("device_name", identity.deviceName)
+                    put("pubkey", identity.pubkeyHex)
+                }
+                webSocket.send(identityPayload.toString())
             }
 
             override fun onMessage(webSocket: WebSocket, text: String) {

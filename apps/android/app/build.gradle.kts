@@ -116,6 +116,10 @@ dependencies {
     // Core
     implementation(libs.core.ktx)
 
-    // Real QR generation for pairing (ZXing)
+    // Real QR generation and camera scanning (ZXing + CameraX)
     implementation(libs.zxing.core)
+    implementation(libs.camerax.core)
+    implementation(libs.camerax.camera2)
+    implementation(libs.camerax.lifecycle)
+    implementation(libs.camerax.view)
 }

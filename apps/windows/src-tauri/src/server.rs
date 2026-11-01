@@ -7,6 +7,7 @@ use axum::{
     Router,
 };
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::net::SocketAddr;
@@ -50,6 +51,14 @@ pub struct FileEntryJson {
     pub mtime: i64,
 }
 
+#[derive(Serialize)]
+pub struct SyncManifestItem {
+    pub path: String,
+    pub size: u64,
+    pub mtime: i64,
+    pub sha256: String,
+}
+
 pub struct EmbeddedServer;
 
 impl EmbeddedServer {
@@ -68,6 +77,8 @@ impl EmbeddedServer {
             .route("/api/read", get(handle_read))
             .route("/api/write", post(handle_write))
             .route("/api/thumb", get(handle_thumb))
+            .route("/api/sync_manifest", get(handle_sync_manifest))
+            .route("/api/pair", post(handle_pair))
             .layer(cors)
             .with_state(state);
 
@@ -76,12 +87,11 @@ impl EmbeddedServer {
             .await
             .map_err(|e| format!("Failed to bind port {}: {}", port, e))?;
 
-        tracing::info!("Embedded Axum server listening on http://0.0.0.0:{}", port);
-        tokio::spawn(async move {
-            let _ = axum::serve(listener, app).await;
-        });
+        crate::log_line(&format!("embedded server listening on :{}", port));
 
-        Ok(())
+        axum::serve(listener, app)
+            .await
+            .map_err(|e| format!("Axum server error: {}", e))
     }
 }
 
@@ -102,6 +112,34 @@ async fn handle_list(
     Query(query): Query<ListQuery>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
     let req_path = query.path.unwrap_or_else(|| "/".to_string());
+    let cleaned = req_path.trim_matches(|c| c == '/' || c == '\\');
+
+    let folders = state.db.get_shared_folders().unwrap_or_default();
+    let enabled_folders: Vec<_> = folders.into_iter().filter(|f| f.enabled).collect();
+
+    // Virtual root: list enabled shared folders
+    if cleaned.is_empty() || req_path == "/" {
+        let mut entries = Vec::new();
+        for f in enabled_folders {
+            let mtime = fs::metadata(&f.path)
+                .ok()
+                .and_then(|m| m.modified().ok())
+                .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+                .map(|d| d.as_millis() as i64)
+                .unwrap_or(0);
+            entries.push(FileEntryJson {
+                name: f.label,
+                entry_type: "dir".to_string(),
+                size: 0,
+                mtime,
+            });
+        }
+        return Ok(Json(serde_json::json!({
+            "ok": true,
+            "entries": entries
+        })));
+    }
+
     let target = resolve_safe_path(&state.db, &req_path, false)?;
 
     if !target.exists() || !target.is_dir() {
@@ -343,6 +381,49 @@ async fn handle_thumb(
     Ok(response)
 }
 
+#[derive(Deserialize)]
+pub struct DirectPairRequest {
+    pub code: String,
+    pub device_id: String,
+    pub device_name: String,
+    pub pubkey: String,
+}
+
+async fn handle_pair(
+    State(state): State<Arc<ServerState>>,
+    Json(payload): Json<DirectPairRequest>,
+) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis() as i64;
+
+    let trusted = crate::db::TrustedDevice {
+        device_id: payload.device_id.clone(),
+        device_name: payload.device_name.clone(),
+        pubkey: payload.pubkey.clone(),
+        pinned_at: now,
+        last_seen: Some(now),
+        is_revoked: false,
+    };
+
+    if let Err(e) = state.db.add_trusted_device(trusted) {
+        return Err((
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({"ok": false, "code": "DB_ERROR", "message": e})),
+        ));
+    }
+
+    crate::log_line(&format!("Direct LAN paired with device: {} ({})", payload.device_name, payload.device_id));
+
+    Ok(Json(serde_json::json!({
+        "ok": true,
+        "device_id": state.identity.device_id,
+        "device_name": state.identity.device_name,
+        "pubkey": state.identity.pubkey
+    })))
+}
+
 // -----------------------------------------------------------------------------
 // Path Resolution Helper
 // -----------------------------------------------------------------------------
@@ -366,14 +447,61 @@ fn resolve_safe_path(
         ));
     }
 
-    for folder in enabled_folders {
+    let cleaned = requested.trim_matches(|c| c == '/' || c == '\\');
+    if cleaned.is_empty() {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"ok": false, "code": "DENIED", "message": "Empty path"})),
+        ));
+    }
+
+    let (top_segment, sub_path) = match cleaned.find(['/', '\\']) {
+        Some(idx) => (&cleaned[..idx], &cleaned[idx + 1..]),
+        None => (cleaned, ""),
+    };
+
+    // 1. Try matching top_segment with folder.label
+    for folder in &enabled_folders {
+        if folder.label.eq_ignore_ascii_case(top_segment) {
+            if require_write && folder.acl != "READWRITE" {
+                return Err((
+                    StatusCode::FORBIDDEN,
+                    Json(serde_json::json!({"ok": false, "code": "DENIED", "message": "Read-only folder"})),
+                ));
+            }
+            let base = Path::new(&folder.path);
+            let target = if sub_path.is_empty() {
+                base.to_path_buf()
+            } else {
+                Security::sanitize_path(base, sub_path).map_err(|_| {
+                    (
+                        StatusCode::FORBIDDEN,
+                        Json(serde_json::json!({"ok": false, "code": "DENIED", "message": "Path traversal blocked"})),
+                    )
+                })?
+            };
+            return Ok(target);
+        }
+    }
+
+    // 2. Direct relative match against each folder
+    for folder in &enabled_folders {
         if require_write && folder.acl != "READWRITE" {
             continue;
         }
-
         let base = Path::new(&folder.path);
-        if let Ok(safe) = Security::sanitize_path(base, requested) {
+        if let Ok(safe) = Security::sanitize_path(base, cleaned) {
             return Ok(safe);
+        }
+    }
+
+    // 3. Fallback for write: single file without folder prefix writes to first READWRITE folder
+    if require_write && !cleaned.contains(['/', '\\']) {
+        if let Some(folder) = enabled_folders.iter().find(|f| f.acl == "READWRITE") {
+            let base = Path::new(&folder.path);
+            if let Ok(safe) = Security::sanitize_path(base, cleaned) {
+                return Ok(safe);
+            }
         }
     }
 
@@ -381,4 +509,138 @@ fn resolve_safe_path(
         StatusCode::FORBIDDEN,
         Json(serde_json::json!({"ok": false, "code": "DENIED", "message": "Path traversal blocked or share not accessible"})),
     ))
+}
+
+async fn handle_sync_manifest(
+    State(state): State<Arc<ServerState>>,
+    Query(query): Query<ListQuery>,
+) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
+    let req_path = query.path.unwrap_or_else(|| "/".to_string());
+    let cleaned = req_path.trim_matches(|c| c == '/' || c == '\\');
+
+    let folders = state.db.get_shared_folders().unwrap_or_default();
+    let enabled_folders: Vec<_> = folders.into_iter().filter(|f| f.enabled).collect();
+
+    let mut target_dirs: Vec<(String, PathBuf)> = Vec::new();
+
+    if cleaned.is_empty() || req_path == "/" {
+        for f in enabled_folders {
+            let p = PathBuf::from(&f.path);
+            if p.is_dir() {
+                target_dirs.push((f.label, p));
+            }
+        }
+    } else {
+        let target = resolve_safe_path(&state.db, &req_path, false)?;
+        if target.is_dir() {
+            target_dirs.push((cleaned.to_string(), target));
+        }
+    }
+
+    let mut entries = Vec::new();
+
+const IGNORED_DIRS: &[&str] = &[
+    ".git",
+    "node_modules",
+    "build",
+    "target",
+    ".gradle",
+    ".idea",
+    ".vscode",
+    "dist",
+    "__pycache__",
+    ".cache",
+    ".thumbnails",
+    ".Trash",
+    "$RECYCLE.BIN",
+    ".vercel",
+];
+
+const IGNORED_FILES: &[&str] = &[
+    ".DS_Store",
+    "Thumbs.db",
+    "desktop.ini",
+];
+
+fn is_ignored_dir(name: &str) -> bool {
+    IGNORED_DIRS.iter().any(|d| d.eq_ignore_ascii_case(name))
+}
+
+fn is_ignored_file(name: &str) -> bool {
+    if IGNORED_FILES.iter().any(|f| f.eq_ignore_ascii_case(name)) {
+        return true;
+    }
+    name.ends_with(".tmp") || name.ends_with(".part")
+}
+
+    fn scan_dir(prefix: &str, dir: &Path, entries: &mut Vec<SyncManifestItem>) {
+        if let Ok(read_dir) = fs::read_dir(dir) {
+            for entry in read_dir.flatten() {
+                let path = entry.path();
+                let file_name = entry.file_name().to_string_lossy().to_string();
+
+                if path.is_dir() {
+                    if is_ignored_dir(&file_name) {
+                        continue;
+                    }
+                    let rel_path = if prefix.is_empty() {
+                        file_name
+                    } else {
+                        format!("{}/{}", prefix, file_name)
+                    };
+                    scan_dir(&rel_path, &path, entries);
+                } else if path.is_file() {
+                    if is_ignored_file(&file_name) {
+                        continue;
+                    }
+                    let rel_path = if prefix.is_empty() {
+                        file_name
+                    } else {
+                        format!("{}/{}", prefix, file_name)
+                    };
+                    if let Ok(meta) = path.metadata() {
+                        let size = meta.len();
+                        let mtime = meta
+                            .modified()
+                            .ok()
+                            .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+                            .map(|d| d.as_millis() as i64)
+                            .unwrap_or(0);
+
+                        if let Ok(hash) = calculate_sha256(&path) {
+                            entries.push(SyncManifestItem {
+                                path: rel_path,
+                                size,
+                                mtime,
+                                sha256: hash,
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    for (pfx, dir) in target_dirs {
+        scan_dir(&pfx, &dir, &mut entries);
+    }
+
+    Ok(Json(serde_json::json!({
+        "ok": true,
+        "entries": entries
+    })))
+}
+
+fn calculate_sha256(path: &Path) -> Result<String, std::io::Error> {
+    let mut file = File::open(path)?;
+    let mut hasher = Sha256::new();
+    let mut buffer = [0u8; 65536];
+    loop {
+        let n = file.read(&mut buffer)?;
+        if n == 0 {
+            break;
+        }
+        hasher.update(&buffer[..n]);
+    }
+    Ok(format!("{:x}", hasher.finalize()))
 }

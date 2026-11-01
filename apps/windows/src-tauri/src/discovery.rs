@@ -19,6 +19,18 @@ pub struct MdnsDiscovery {
     discovered: Arc<Mutex<HashMap<String, DiscoveredDevice>>>,
 }
 
+pub fn get_primary_ipv4() -> Option<String> {
+    let socket = std::net::UdpSocket::bind("0.0.0.0:0").ok()?;
+    socket.connect("8.8.8.8:80").ok()?;
+    let local_addr = socket.local_addr().ok()?;
+    match local_addr.ip() {
+        std::net::IpAddr::V4(ip) if !ip.is_link_local() && !ip.is_loopback() => {
+            Some(ip.to_string())
+        }
+        _ => None,
+    }
+}
+
 impl MdnsDiscovery {
     pub fn new() -> Result<Self, String> {
         let daemon = ServiceDaemon::new().map_err(|e| e.to_string())?;
@@ -43,11 +55,14 @@ impl MdnsDiscovery {
         properties.insert("device_name".to_string(), device_name.to_string());
         properties.insert("version".to_string(), "0.1.0".to_string());
 
+        let primary_ip = get_primary_ipv4().unwrap_or_default();
+        crate::log_line(&format!("Registering mDNS service with IP: '{}'", primary_ip));
+
         let my_service = ServiceInfo::new(
             service_type,
             &instance_name,
             &host_name,
-            "",
+            &primary_ip,
             port,
             properties,
         )
@@ -79,7 +94,13 @@ impl MdnsDiscovery {
                             .unwrap_or(info.get_fullname())
                             .to_string();
 
-                        if let Some(addr) = info.get_addresses().iter().next() {
+                        let target_addr = info
+                            .get_addresses()
+                            .iter()
+                            .find(|a| !a.is_loopback() && !a.to_string().starts_with("169.254"))
+                            .or_else(|| info.get_addresses().iter().next());
+
+                        if let Some(addr) = target_addr {
                             let ip_str = addr.to_string();
                             let address = format!("{}:{}", ip_str, info.get_port());
 

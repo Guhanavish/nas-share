@@ -11,6 +11,10 @@ import com.nas.app.service.NasService
 import com.nas.app.ui.navigation.MainAppNavigation
 import com.nas.app.ui.theme.NasAppTheme
 
+import android.net.Uri
+import android.os.Environment
+import android.provider.Settings
+
 class MainActivity : ComponentActivity() {
 
     private val permissionLauncher = registerForActivityResult(
@@ -53,7 +57,8 @@ class MainActivity : ComponentActivity() {
             Manifest.permission.INTERNET,
             Manifest.permission.ACCESS_NETWORK_STATE,
             Manifest.permission.ACCESS_WIFI_STATE,
-            Manifest.permission.CHANGE_WIFI_MULTICAST_STATE
+            Manifest.permission.CHANGE_WIFI_MULTICAST_STATE,
+            Manifest.permission.CAMERA
         )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -66,5 +71,20 @@ class MainActivity : ComponentActivity() {
         }
 
         permissionLauncher.launch(permissions.toTypedArray())
+
+        // Prompt for all-files access on Android 11+ if not granted
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!Environment.isExternalStorageManager()) {
+                try {
+                    val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
+                        data = Uri.parse("package:$packageName")
+                    }
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                    startActivity(intent)
+                }
+            }
+        }
     }
 }

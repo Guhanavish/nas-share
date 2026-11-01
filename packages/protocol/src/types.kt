@@ -1,4 +1,4 @@
-﻿// =============================================================================
+// =============================================================================
 // Nasend — Kotlin Protocol Types (kotlinx.serialization)
 // =============================================================================
 package com.nas.protocol
@@ -135,17 +135,17 @@ data class SyncManifestRequest(
 @Serializable
 data class ListResponse(
     val type: String = "list_response",
-    val id: String,
+    val id: String = "",
     val ok: Boolean = true,
-    val entries: List<FileEntry>
+    val entries: List<FileEntry> = emptyList()
 )
 
 @Serializable
 data class StatResponse(
     val type: String = "stat_response",
-    val id: String,
+    val id: String = "",
     val ok: Boolean = true,
-    val meta: FileMeta
+    val meta: FileMeta = FileMeta(name = "", entryType = EntryType.FILE, size = 0, mtime = 0)
 )
 
 @Serializable

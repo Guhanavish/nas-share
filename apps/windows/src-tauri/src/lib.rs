@@ -6,6 +6,7 @@ pub mod protocol;
 pub mod relay;
 pub mod security;
 pub mod server;
+pub mod sync;
 pub mod tray;
 
 use serde::{Deserialize, Serialize};
@@ -19,6 +20,7 @@ use crate::pairing::PairingManager;
 use crate::protocol::{FileEntry, FileProtoClient};
 use crate::relay::{RelayMesh, RemoteDevice};
 use crate::server::EmbeddedServer;
+use crate::sync::{SyncEngine, SyncStats};
 use crate::tray::TrayManager;
 
 pub struct AppState {
@@ -134,11 +136,27 @@ async fn generate_pairing_code() -> Result<String, String> {
 }
 
 #[tauri::command]
+async fn start_initiator_pairing(
+    state: State<'_, AppState>,
+    code: String,
+) -> Result<String, String> {
+    PairingManager::wait_for_peer_pairing(&state.worker_url, &code, &state.identity, &state.db).await
+}
+
+#[tauri::command]
 async fn join_pairing(
     state: State<'_, AppState>,
     code: String,
 ) -> Result<String, String> {
     PairingManager::join_and_pair(&state.worker_url, &code, &state.identity, &state.db).await
+}
+
+#[tauri::command]
+async fn sync_folder(
+    state: State<'_, AppState>,
+    peer_address: String,
+) -> Result<SyncStats, String> {
+    SyncEngine::sync_with_peer(&peer_address, &state.db).await
 }
 
 #[tauri::command]
@@ -206,7 +224,7 @@ fn log_path() -> std::path::PathBuf {
         .join("nas.log")
 }
 
-fn log_line(msg: &str) {
+pub(crate) fn log_line(msg: &str) {
     try_log_line(msg);
 }
 
@@ -258,11 +276,14 @@ pub fn run() {
     let _ = tracing_subscriber::fmt()
         .with_env_filter("nas_share_desktop_lib=info,info")
         .try_init();
-    log_line("starting Nasend");
+    log_line("trace: 1 - starting Nasend");
 
     // --- Fallible init: every step degrades instead of .expect()-crashing ---
     let db = match Database::init() {
-        Ok(d) => d,
+        Ok(d) => {
+            log_line("trace: 2 - Database::init Ok");
+            d
+        }
         Err(e) => {
             log_line(&format!("Database::init failed ({}), using in-memory fallback", e));
             match Database::ephemeral() {
@@ -276,7 +297,10 @@ pub fn run() {
     };
 
     let identity = match DeviceIdentity::get_or_create() {
-        Ok(id) => id,
+        Ok(id) => {
+            log_line(&format!("trace: 3 - DeviceIdentity Ok: {}", id.device_id));
+            id
+        }
         Err(e) => {
             log_line(&format!("Identity load failed ({}), using ephemeral identity", e));
             ephemeral_identity()
@@ -284,7 +308,10 @@ pub fn run() {
     };
 
     let discovery: Option<MdnsDiscovery> = match MdnsDiscovery::new() {
-        Ok(d) => Some(d),
+        Ok(d) => {
+            log_line("trace: 4 - MdnsDiscovery Ok");
+            Some(d)
+        }
         Err(e) => {
             log_line(&format!("mDNS daemon failed ({}), continuing without LAN discovery", e));
             None
@@ -295,6 +322,8 @@ pub fn run() {
     if let Some(d) = discovery.as_ref() {
         if let Err(e) = d.register_service(port, &identity.device_id, &identity.device_name) {
             log_line(&format!("mDNS register failed ({}), continuing", e));
+        } else {
+            log_line("trace: 5 - mDNS service registered");
         }
     }
 
@@ -306,20 +335,43 @@ pub fn run() {
         relay: RelayMesh::new(),
     };
 
+    log_line("trace: 6 - building Tauri app");
     let result = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
         .manage(app_state)
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                let _ = window.hide();
+                api.prevent_close();
+            }
+        })
         .setup(move |app| {
-            let _ = TrayManager::setup(app.handle());
+            log_line("trace: 7 - inside Tauri setup hook");
+            if let Err(e) = TrayManager::setup(app.handle()) {
+                log_line(&format!("Tray setup warning: {}", e));
+            }
 
-            // Start mDNS browsing + embedded file server INSIDE the Tauri
-            // async runtime (tokio::spawn before this point panics: no reactor).
             let handle = app.handle().clone();
+            let server_state = handle.state::<AppState>();
+            let server_db = server_state.db.clone();
+            let server_identity = server_state.identity.clone();
+
+            // Spawn HTTP file server independently
             tauri::async_runtime::spawn(async move {
-                let state = handle.state::<AppState>();
-                // Remote mesh: presence heartbeat + answer relay file
-                // requests so this PC is poolable without LAN.
+                log_line(&format!("embedded server starting on :{}", port));
+                if let Err(e) = EmbeddedServer::run(port, server_db, server_identity).await {
+                    log_line(&format!(
+                        "embedded server failed ({}). UI still usable; check port {} in use.",
+                        e, port
+                    ));
+                }
+            });
+
+            // Spawn remote relay and mDNS browsing independently
+            let bg_handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                let state = bg_handle.state::<AppState>();
                 state
                     .relay
                     .start(
@@ -332,15 +384,6 @@ pub fn run() {
                     if let Err(e) = d.start_browsing() {
                         log_line(&format!("mDNS browse failed ({}), continuing", e));
                     }
-                }
-                let server_db = state.db.clone();
-                let server_identity = state.identity.clone();
-                match EmbeddedServer::run(port, server_db, server_identity).await {
-                    Ok(()) => log_line(&format!("embedded server listening on :{}", port)),
-                    Err(e) => log_line(&format!(
-                        "embedded server failed ({}). UI still usable; check port {} in use.",
-                        e, port
-                    )),
                 }
             });
             Ok(())
@@ -357,6 +400,7 @@ pub fn run() {
             remove_shared_folder,
             toggle_shared_folder,
             generate_pairing_code,
+            start_initiator_pairing,
             join_pairing,
             revoke_device,
             get_settings,
@@ -364,9 +408,20 @@ pub fn run() {
             get_remote_online,
             list_files_remote,
             download_file_remote,
+            sync_folder,
         ])
-        .run(tauri::generate_context!());
-    if let Err(e) = result {
-        log_line(&format!("Tauri runtime error: {}", e));
+        .build(tauri::generate_context!());
+
+    match result {
+        Ok(app) => {
+            log_line("trace: 7.5 - Builder::build Ok, running event loop");
+            app.run(|_app_handle, event| {
+                log_line(&format!("RunEvent: {:?}", event));
+            });
+            log_line("trace: 8 - app.run exited cleanly");
+        }
+        Err(e) => {
+            log_line(&format!("trace: ERROR - Builder::build failed: {}", e));
+        }
     }
 }

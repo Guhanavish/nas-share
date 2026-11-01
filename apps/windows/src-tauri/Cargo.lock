@@ -2394,6 +2394,7 @@ name = "nas-share-desktop"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "base64 0.22.1",
  "dirs 5.0.1",
  "futures-util",
  "mdns-sd",

@@ -1,94 +1,185 @@
 import { useState } from "react";
-import { ChevronDown, HelpCircle } from "lucide-react";
-import { GlassCard } from "../glass/GlassCard";
-import { zenAudioEngine } from "../audio/ZenAudio";
+import { motion, AnimatePresence } from "motion/react";
+import { Plus } from "lucide-react";
+import { TOKENS } from "../../tokens";
+
+interface TooltipTermProps {
+  term: string;
+  definition: string;
+}
+
+// Item 44: Tooltip on technical terms that fades and slides up 4px on hover
+function TechnicalTerm({ term, definition }: TooltipTermProps) {
+  const [hovered, setHovered] = useState(false);
+  const { duration, ease } = TOKENS.motion;
+
+  return (
+    <span
+      className="relative inline-block"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <span className="cursor-help border-b border-dotted border-[#38bdf8] text-[#f0f6fc] font-medium">
+        {term}
+      </span>
+      <AnimatePresence>
+        {hovered && (
+          <motion.div
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            transition={{ duration: duration.fast, ease: ease.standard }}
+            className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-2.5 rounded bg-[#21262d] border border-[#30363d] text-[11px] font-sans text-[#f0f6fc] leading-normal shadow-lg z-30 pointer-events-none"
+          >
+            <div className="font-mono text-[10px] text-[#38bdf8] uppercase tracking-wider mb-1">
+              {term} Protocol
+            </div>
+            {definition}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </span>
+  );
+}
 
 export function FaqAccordionSection() {
   const [openIdx, setOpenIdx] = useState<number | null>(0);
+  const { duration, ease } = TOKENS.motion;
 
   const faqs = [
     {
       q: "How does Nasend operate with zero VPS servers and $0 operating cost?",
-      a: "Commercial cloud storage companies charge recurring fees because they maintain costly central datacenters to host your data. Nasend recognizes that your devices already contain terabytes of high-speed NVMe flash storage. By using Cloudflare Workers and Durable Objects solely for ephemeral signaling (a few kilobytes of JSON), all file bytes stream directly peer-to-peer over your local Wi-Fi or encrypted WebRTC DataChannels.",
+      answerNode: (
+        <span>
+          Traditional cloud storage hosts terabytes of duplicate storage in centralized datacenters.
+          Nasend turns your local phone, TV, and PC into the storage tier. The Cloudflare Worker only
+          handles ephemeral room signaling (exchanging small SDP strings under 2 KB). File payload
+          bytes never touch the worker or any third-party infrastructure.
+        </span>
+      ),
     },
     {
-      q: "Does Nasend work completely offline when the internet is down?",
-      a: "Yes. When your devices are connected to the same local Wi-Fi network (or a travel router / phone hotspot), they discover each other automatically using local mDNS (Multicast DNS). Files and media stream at line-rate Gigabit speeds without touching the external internet at all.",
+      q: "Does Nasend work completely offline when external internet is down?",
+      answerNode: (
+        <span>
+          Yes. On your home Wi-Fi or phone hotspot, Nasend discovers peers via{" "}
+          <TechnicalTerm
+            term="mDNS"
+            definition="Multicast DNS enables zero-configuration host discovery across the local subnet without requiring a central DNS server."
+          />
+          . File transfers and high-bitrate media streaming run directly over LAN sockets on port
+          8743 at full line-rate Gigabit speeds without querying the external internet.
+        </span>
+      ),
     },
     {
-      q: "How does the 8-Rune Crockford Base32 pairing secure my devices?",
-      a: "Crockford Base32 removes ambiguous characters (0/O, 1/I/L) to prevent verbal and visual errors. When pairing, devices exchange ephemeral cryptographic tokens and derive pinned Ed25519 public key fingerprints. Once paired, your devices recognize each other automatically without needing pairing codes ever again.",
+      q: "How does the single-use 8-character pairing code work?",
+      answerNode: (
+        <span>
+          Pairing uses a Crockford Base32 alphabet (omitting ambiguous glyphs I, L, O, U) formatted
+          as <code className="font-mono text-[#38bdf8]">XXXX-XXXX</code>. It has a strict 5-minute
+          time-to-live and can only be used once. After completing the handshake, devices derive and
+          pin an Ed25519 cryptographic key for continuous authentication.
+        </span>
+      ),
     },
     {
-      q: "Can I stream 4K HDR video straight to my TV without transcoding lag?",
-      a: "Yes. Nasend implements the standard HTTP 206 Partial Content Range specification. When ExoPlayer on Android TV or your phone requests a frame, Nasend streams only the specific 64KB byte chunk needed. You can scrub anywhere in a 30GB movie and video begins playback in under a millisecond.",
+      q: "Can I stream 4K video straight to my TV without transcoding latency?",
+      answerNode: (
+        <span>
+          Yes. Nasend implements standard HTTP/1.1 Range requests (RFC 7233). When ExoPlayer or VLC
+          requests a frame, the host delivers precise 16–64 KB chunk segments directly into memory.
+          Scrubbing through a 30 GB 4K video begins playback in under 2 milliseconds.
+        </span>
+      ),
     },
     {
-      q: "How does Nasend compare to Syncthing or AirDrop?",
-      a: "AirDrop is locked to the Apple ecosystem and cannot do continuous folder synchronization or remote WAN transfers. Syncthing requires complex multi-step folder configuration and doesn't support sub-millisecond media streaming. Nasend unifies instant ad-hoc pairing, continuous folder delta sync, and instant media streaming across Android, Windows, and TV.",
+      q: "How does encrypted WebRTC NAT traversal function across different networks?",
+      answerNode: (
+        <span>
+          When devices are on separate networks, Nasend negotiates direct connections via{" "}
+          <TechnicalTerm
+            term="NAT traversal"
+            definition="STUN and ICE candidate harvesting discover public IP mappings to punch through firewalls for direct P2P connections."
+          />{" "}
+          and establishes a{" "}
+          <TechnicalTerm
+            term="DTLS"
+            definition="Datagram Transport Layer Security (v1.3) encrypts WebRTC DataChannels end-to-end, preventing intermediaries from intercepting file payload."
+          />{" "}
+          encrypted tunnel. The signaling server coordinates the handshake but cannot decrypt the
+          payload stream.
+        </span>
+      ),
     },
   ];
 
   const handleToggle = (idx: number) => {
     setOpenIdx(openIdx === idx ? null : idx);
-    zenAudioEngine.playChime(500 + idx * 40);
   };
 
   return (
-    <section id="faq" className="relative py-28 px-4 sm:px-6 lg:px-12">
-      <div className="mx-auto max-w-4xl w-full space-y-12">
-        {/* Header */}
-        <div className="text-center space-y-4 max-w-2xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-indigo-mesh/20 bg-indigo-mesh/5 text-[11px] font-mono text-indigo-mesh uppercase tracking-widest">
-            <HelpCircle size={14} />
-            <span>Architecture &amp; Security</span>
+    <section id="faq" className="py-20 border-b border-[#30363d]">
+      <div className="mx-auto max-w-4xl px-6 space-y-10">
+        <div className="space-y-3">
+          <div className="font-mono text-[11px] uppercase tracking-wider text-[#8b949e]">
+            Specifications &amp; Inquiries
           </div>
-          <h2 className="font-display text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-            Frequently Asked Questions.
+          <h2 className="text-2xl font-semibold tracking-tight text-[#f0f6fc]">
+            Frequently asked questions
           </h2>
-          <p className="text-fog text-sm sm:text-base leading-relaxed">
-            Everything you need to know about the peer-to-peer mesh architecture,
-            cryptographic identity pinning, and zero-cloud operation.
+          <p className="text-sm text-[#8b949e] leading-relaxed max-w-xl">
+            Technical architecture, local-first protocols, and cryptographic transport guarantees.
           </p>
         </div>
 
-        {/* Accordions */}
-        <div className="space-y-4">
+        {/* Item 43: Accordions with smooth height transition & rotating plus sign */}
+        <div className="space-y-3">
           {faqs.map((faq, idx) => {
             const isOpen = openIdx === idx;
-            return (
-              <GlassCard
-                key={idx}
-                glowColor="indigo"
-                onClick={() => handleToggle(idx)}
-                className="p-6 cursor-pointer border border-white/10 transition-all select-none"
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <h3 className="font-display font-semibold text-base sm:text-lg text-white">
-                    {faq.q}
-                  </h3>
-                  <div
-                    className={`w-7 h-7 rounded-full bg-white/[0.05] border border-white/10 flex items-center justify-center shrink-0 text-cyan-mesh transition-transform duration-300 ${
-                      isOpen ? "rotate-180 bg-cyan-mesh/10 border-cyan-mesh/30" : ""
-                    }`}
-                  >
-                    <ChevronDown className="w-4 h-4" />
-                  </div>
-                </div>
 
-                {/* Animated Drawer Body */}
-                <div
-                  className={`grid transition-[grid-template-rows] duration-300 ease-out ${
-                    isOpen ? "grid-rows-[1fr] pt-4" : "grid-rows-[0fr]"
-                  }`}
+            return (
+              <div
+                key={idx}
+                className="rounded border border-[#30363d] bg-[#161b22] transition-colors duration-150"
+              >
+                <button
+                  type="button"
+                  onClick={() => handleToggle(idx)}
+                  className="w-full text-left p-5 flex items-center justify-between gap-4 cursor-pointer select-none"
+                  aria-expanded={isOpen}
                 >
-                  <div className="overflow-hidden">
-                    <p className="text-sm text-fog leading-relaxed border-t border-white/5 pt-3">
-                      {faq.a}
-                    </p>
-                  </div>
-                </div>
-              </GlassCard>
+                  <span className="text-sm font-medium text-[#f0f6fc]">
+                    {faq.q}
+                  </span>
+
+                  {/* Plus icon rotates 45 degrees to become a close icon (Item 43) */}
+                  <motion.div
+                    animate={{ rotate: isOpen ? 45 : 0 }}
+                    transition={{ duration: duration.fast, ease: ease.standard }}
+                    className="shrink-0 p-1 rounded text-[#8b949e] hover:text-[#f0f6fc]"
+                  >
+                    <Plus className="w-4 h-4 text-[#38bdf8]" />
+                  </motion.div>
+                </button>
+
+                {/* Smooth height transition */}
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: duration.normal, ease: ease.standard }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-5 pb-5 pt-1 text-xs text-[#8b949e] leading-relaxed border-t border-[#30363d]/50">
+                        {faq.answerNode}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             );
           })}
         </div>

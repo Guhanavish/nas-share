@@ -2,11 +2,14 @@ import { Suspense, lazy, useEffect } from "react";
 import { HashRouter, Routes, Route, useLocation } from "react-router-dom";
 import Lenis from "lenis";
 import { Navbar, Footer } from "./components/chrome";
+import { ScrollProgressBar } from "./components/chrome/ScrollProgressBar";
+import { initFaviconAnimation } from "./lib/faviconAnimation";
 import { Home } from "./pages/Home";
 import { useLatestRelease } from "./lib/site";
 
 const Docs = lazy(() => import("./pages/Docs").then((m) => ({ default: m.Docs })));
 const Security = lazy(() => import("./pages/Security").then((m) => ({ default: m.Security })));
+const Brand = lazy(() => import("./pages/Brand").then((m) => ({ default: m.Brand })));
 const Changelog = lazy(() =>
   import("./pages/Changelog").then((m) => ({ default: m.Changelog }))
 );
@@ -56,7 +59,8 @@ export default function App() {
   const release = useLatestRelease();
 
   useEffect(() => {
-    if (reduced) return;
+    const cleanupFavicon = initFaviconAnimation();
+    if (reduced) return cleanupFavicon;
     const lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
     let raf = 0;
     const loop = (t: number) => {
@@ -67,11 +71,13 @@ export default function App() {
     return () => {
       cancelAnimationFrame(raf);
       lenis.destroy();
+      if (cleanupFavicon) cleanupFavicon();
     };
   }, []);
 
   return (
     <HashRouter>
+      <ScrollProgressBar />
       <ScrollManager />
       <Navbar />
       <main className="min-h-screen bg-[#0e1117]">
@@ -80,6 +86,7 @@ export default function App() {
             <Route path="/" element={<Home release={release} />} />
             <Route path="/security" element={<Security />} />
             <Route path="/docs" element={<Docs />} />
+            <Route path="/brand" element={<Brand />} />
             <Route path="/changelog" element={<Changelog />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />

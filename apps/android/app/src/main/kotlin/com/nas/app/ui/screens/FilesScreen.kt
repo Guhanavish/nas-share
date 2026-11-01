@@ -121,7 +121,21 @@ fun FilesScreen(
                     progressMessage = "Uploading file..."
                     // Copy to temp file to obtain length & seek
                     val contentResolver = context.contentResolver
-                    val fileName = uri.lastPathSegment?.substringAfterLast("/") ?: "upload.bin"
+                    var displayName: String? = null
+                    if (uri.scheme == "content") {
+                        try {
+                            contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                                val nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                                if (nameIndex != -1 && cursor.moveToFirst()) {
+                                    displayName = cursor.getString(nameIndex)
+                                }
+                            }
+                        } catch (e: Exception) {
+                            // Fallback to segment
+                        }
+                    }
+                    val rawName = displayName ?: uri.lastPathSegment?.substringAfterLast("/") ?: "upload.bin"
+                    val fileName = rawName.replace(":", "_").replace("/", "_").replace("\\", "_")
                     val tempFile = File(context.cacheDir, fileName)
                     contentResolver.openInputStream(uri)?.use { input ->
                         tempFile.outputStream().use { output -> input.copyTo(output) }

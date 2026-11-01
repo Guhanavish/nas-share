@@ -1,30 +1,42 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
   <rect width="1200" height="630" fill="#0e1117"/>
-  <rect x="80" y="80" width="1040" height="470" fill="none" stroke="#30363d" stroke-width="1"/>
+  <rect x="60" y="60" width="1080" height="510" fill="none" stroke="#30363d" stroke-width="1"/>
   
-  <!-- Minimal wordmark mark -->
-  <g transform="translate(140, 150)">
-    <rect x="0" y="0" width="48" height="48" rx="4" fill="none" stroke="#f0f6fc" stroke-width="3"/>
-    <circle cx="24" cy="24" r="6" fill="#f0f6fc"/>
-    <text x="68" y="36" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-weight="600" font-size="36" fill="#f0f6fc">Nasend</text>
+  <!-- Pairing code character grid pattern in background (Item 4) -->
+  <g opacity="0.04" font-family="ui-monospace, SFMono-Regular, monospace" font-size="14" fill="#f0f6fc">
+    <text x="80" y="100">K 7 M 2 - Q 9 X D   2 3 4 5 6 7 8 9   A B C D E F G H   J K M N P Q R S</text>
+    <text x="80" y="130">T V W X Y Z 2 3   K 7 M 2 - Q 9 X D   8 7 4 3 P O R T   D T L S 1 . 3 P</text>
+    <text x="80" y="160">E D 2 5 5 1 9 K   P E E R 2 P E E R   M D N S N E T W   W E B R T C C H</text>
+    <text x="80" y="190">R F C 7 2 3 3 R   K 7 M 2 - Q 9 X D   C L O U D F L A   W O R K E R D O</text>
   </g>
 
-  <!-- Clean Editorial Headline -->
-  <text x="140" y="290" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-weight="600" font-size="52" fill="#f0f6fc" letter-spacing="-1">
-    Files between your devices,
+  <!-- Logo mark: Two linked nodes + lowercase wordmark (Items 1, 2) -->
+  <g transform="translate(120, 140)">
+    <circle cx="16" cy="24" r="10" fill="none" stroke="#38bdf8" stroke-width="3"/>
+    <circle cx="48" cy="24" r="10" fill="none" stroke="#38bdf8" stroke-width="3"/>
+    <line x1="26" y1="24" x2="38" y2="24" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
+    <text x="76" y="34" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-weight="700" font-size="40" fill="#f0f6fc" letter-spacing="-1.5">nasend</text>
+  </g>
+
+  <!-- Editorial Headline -->
+  <text x="120" y="275" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-weight="600" font-size="54" fill="#f0f6fc" letter-spacing="-1.5">
+    Your devices are the cloud.
   </text>
-  <text x="140" y="355" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-weight="600" font-size="52" fill="#f0f6fc" letter-spacing="-1">
-    without a server.
+  <text x="120" y="340" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-weight="400" font-size="28" fill="#8b949e">
+    Direct peer-to-peer file transfers and 4K streaming without a server.
   </text>
 
-  <!-- Factual subline -->
-  <text x="140" y="425" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="24" fill="#8b949e">
-    Direct peer-to-peer file transfers and local 4K streaming over LAN and WebRTC.
-  </text>
+  <!-- Pairing Code Signature Brand Badge -->
+  <g transform="translate(120, 395)">
+    <rect x="0" y="0" width="220" height="48" rx="4" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+    <text x="16" y="30" font-family="ui-monospace, SFMono-Regular, monospace" font-size="18" font-weight="600" fill="#38bdf8" letter-spacing="2">K7M2-Q9XD</text>
+    <rect x="175" y="14" width="32" height="20" rx="3" fill="#21262d" stroke="#30363d" stroke-width="1"/>
+    <text x="181" y="28" font-family="ui-monospace, SFMono-Regular, monospace" font-size="10" fill="#8b949e">5m</text>
+  </g>
 
-  <!-- Technical specs footer line -->
-  <line x1="140" y1="475" x2="1060" y2="475" stroke="#30363d" stroke-width="1"/>
-  <text x="140" y="510" font-family="ui-monospace, SFMono-Regular, monospace" font-size="16" fill="#8b949e">
+  <!-- Specs hair-line footer rule -->
+  <line x1="120" y1="490" x2="1080" y2="490" stroke="#30363d" stroke-width="1"/>
+  <text x="120" y="525" font-family="ui-monospace, SFMono-Regular, monospace" font-size="15" fill="#8b949e">
     Port 8743 • Crockford Base32 • DTLS 1.3 • Ed25519 Pinning • Open Source (MIT)
   </text>
 </svg>
